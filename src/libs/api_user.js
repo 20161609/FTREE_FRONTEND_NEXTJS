@@ -194,6 +194,7 @@ export async function api_get_user_info() {
         if (!response.ok) {
             const errorData = await response.json();
             console.log("Error", errorData);
+            alert(errorData.detail || 'Failed to get user information');
             return null;
         }
         
