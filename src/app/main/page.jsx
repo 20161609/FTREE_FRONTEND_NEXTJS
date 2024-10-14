@@ -11,29 +11,32 @@ import { api_get_user_info } from '@/libs/api_user';
 import { api_refer_daily } from '@/libs/api_transaction';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useRouter } from 'next/router';
 
 export default function MainPage() {
-  // State variables
+  const router = useRouter();
+
+  // 상태 변수들
   const [transactions, setTransactions] = useState([]);
   const [tree, setTree] = useState(null);
   const [branch, setBranch] = useState(null);
   const [curPath, setCurPath] = useState('Home');
 
-  // Modal state variables
+  // 모달 상태 변수들
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // User information state variables
+  // 사용자 정보 상태 변수들
   const [useAI, setUseAI] = useState(true);
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
-  // Functions to open/close modals
+  // 모달 열기/닫기 함수들
   const openReport = () => setIsReportOpen(true);
   const closeReport = () => setIsReportOpen(false);
 
   const getBackToLogin = () => {
-    window.location.href = '/';
+    router.push('/');
   };
 
   const openSettings = async () => {
@@ -44,15 +47,14 @@ export default function MainPage() {
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
     } catch (error) {
-      alert(error);
       console.error('api_get_user_info error:', error);
-      window.location.href = '/';
+      router.push('/');
     }
   };
 
   const closeSettings = () => setIsSettingsOpen(false);
 
-  // Initialize the tree data
+  // 트리 데이터 초기화
   const initTree = async () => {
     try {
       const data = await api_get_tree();
@@ -68,28 +70,28 @@ export default function MainPage() {
       setBranch(curBranch);
     } catch (error) {
       console.error('initTree error:', error);
-      alert('Failed to initialize the tree. Please try again.');
+      alert('트리 초기화에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
-  // Initialize transaction data based on the current branch path
+  // 현재 브랜치 경로에 따른 거래 내역 초기화
   const initTransactions = async (curBranchPath = 'Home') => {
     try {
       const data = await api_refer_daily(curBranchPath);
       setTransactions(data);
     } catch (error) {
       console.error('api_refer_daily error:', error);
-      alert('Failed to load transactions. Please try again.');
+      alert('거래 내역 로딩에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
   useEffect(() => {
-    // Check Login status
+    // 로그인 상태 확인
     const checkLogin = async () => {
       try {
         const user = await api_get_user_info();
         if (!user) {
-          window.location.href = '/';
+          router.push('/');
           return;
         }
         setUsername(user.username);
@@ -98,14 +100,14 @@ export default function MainPage() {
         await initTransactions();
       } catch (error) {
         console.error('checkLogin error:', error);
-        window.location.href = '/';
+        router.push('/');
       }
     };
 
     checkLogin();
   }, []);
 
-  // Get branch path based on the branch's path string
+  // 브랜치 경로 가져오기
   const getBranchPath = (branchPath) => {
     let pathList = branchPath.split('/');
     let node = tree['Home'];
@@ -119,7 +121,7 @@ export default function MainPage() {
     return branchList;
   };
 
-  // Shift to another branch when clicked
+  // 브랜치 이동
   const shiftBranch = async (branchPath) => {
     if (branchPath === curPath) return;
 
@@ -134,32 +136,32 @@ export default function MainPage() {
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
-      alert('Failed to shift branch. Please try again.');
+      alert('브랜치 이동에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
-  // If the tree or branch data is not loaded yet, show the loading spinner
+  // 트리나 브랜치 데이터가 아직 로드되지 않았다면 로딩 스피너를 표시
   if (!tree || !branch) {
-    return <LoadingSpinner />; // Show LoadingSpinner component while loading
+    return <LoadingSpinner />; // 로딩 중에는 로딩 스피너를 표시
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
+      {/* 헤더 */}
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          {/* Logo or Title */}
+          {/* 로고 또는 제목 */}
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Finance Tree</h1>
-          {/* Button Group */}
+          {/* 버튼 그룹 */}
           <div className="flex space-x-4">
-            {/* Report Button */}
+            {/* 리포트 버튼 */}
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
               onClick={openReport}
             >
-              Report
+              리포트
             </button>
-            {/* Settings Button */}
+            {/* 설정 버튼 */}
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
               onClick={openSettings}
@@ -170,10 +172,10 @@ export default function MainPage() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="space-y-4">
-          {/* Branch Path Navigation */}
+          {/* 브랜치 경로 네비게이션 */}
           <nav className="text-gray-700 dark:text-gray-200 text-sm">
             {getBranchPath(branch.path).map((branch, index, array) => (
               <span key={branch.bid}>
@@ -185,9 +187,9 @@ export default function MainPage() {
             ))}
           </nav>
 
-          {/* Branch List and Transactions */}
+          {/* 브랜치 리스트와 거래 내역 */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Child Branch List */}
+            {/* 자식 브랜치 리스트 */}
             <div className="col-span-1">
               <BranchTree
                 branch={branch}
@@ -196,7 +198,7 @@ export default function MainPage() {
                 initTransactions={initTransactions}
               />
             </div>
-            {/* Transactions */}
+            {/* 거래 내역 */}
             <div className="col-span-1 lg:col-span-2">
               <Transactions
                 transactions={transactions}
@@ -208,7 +210,7 @@ export default function MainPage() {
         </div>
       </main>
 
-      {/* Report Modal */}
+      {/* 리포트 모달 */}
       <ModalReport
         isOpen={isReportOpen}
         closeModal={closeReport}
@@ -216,7 +218,7 @@ export default function MainPage() {
         branch={branch}
       />
 
-      {/* Settings Modal */}
+      {/* 설정 모달 */}
       <ModalSettings
         isOpen={isSettingsOpen}
         closeModal={closeSettings}
