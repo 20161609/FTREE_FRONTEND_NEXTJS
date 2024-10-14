@@ -10,7 +10,7 @@ import { api_get_tree } from '@/libs/api_branch';
 import { api_get_user_info } from '@/libs/api_user';
 import { api_refer_daily } from '@/libs/api_transaction';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
-import LoadingSpinner from '@/components/LoadingSpinner'; // Import the LoadingSpinner component
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function MainPage() {
   // State variables
@@ -32,7 +32,7 @@ export default function MainPage() {
   const openReport = () => setIsReportOpen(true);
   const closeReport = () => setIsReportOpen(false);
 
-  const getBackToLogin = async () => {
+  const getBackToLogin = () => {
     window.location.href = '/';
   };
 
@@ -44,59 +44,62 @@ export default function MainPage() {
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
     } catch (error) {
+      alert(error);
       console.error('api_get_user_info error:', error);
-      return;
+      window.location.href = '/';
     }
   };
 
   const closeSettings = () => setIsSettingsOpen(false);
 
   // Initialize the tree data
-  async function initTree() {
-    const data = await api_get_tree();
-    console.log('data', 'begin');
-    console.log(data);
-    console.log('data', 'end');
+  const initTree = async () => {
+    try {
+      const data = await api_get_tree();
+      console.log('data', 'begin');
+      console.log(data);
+      console.log('data', 'end');
 
-    setTree(data);
+      setTree(data);
 
-    let curBranch = data['Home'];
-    const pathParts = curPath.split('/').slice(1);
-    curBranch = pathParts.reduce((branch, part) => branch.children[part], curBranch);
-    setBranch(curBranch);
-  }
+      let curBranch = data['Home'];
+      const pathParts = curPath.split('/').slice(1);
+      curBranch = pathParts.reduce((branch, part) => branch.children[part], curBranch);
+      setBranch(curBranch);
+    } catch (error) {
+      console.error('initTree error:', error);
+      alert('Failed to initialize the tree. Please try again.');
+    }
+  };
 
   // Initialize transaction data based on the current branch path
-  async function initTransactions(curBranchPath = 'Home') {
+  const initTransactions = async (curBranchPath = 'Home') => {
     try {
       const data = await api_refer_daily(curBranchPath);
       setTransactions(data);
     } catch (error) {
       console.error('api_refer_daily error:', error);
-      alert(error.message);
+      alert('Failed to load transactions. Please try again.');
     }
-  }
+  };
 
   useEffect(() => {
     // Check Login status
     const checkLogin = async () => {
-      const user = await api_get_user_info();
-      if (user === null) {
-        window.location.href = '/';
-        return false;
-      }
       try {
+        const user = await api_get_user_info();
+        if (!user) {
+          window.location.href = '/';
+          return;
+        }
         setUsername(user.username);
         setUserEmail(user.email);
+        await initTree();
+        await initTransactions();
       } catch (error) {
-        console.error('api_get_user_info error:', error);
+        console.error('checkLogin error:', error);
         window.location.href = '/';
-        return false;
       }
-
-      initTree();
-      initTransactions();
-      return true;
     };
 
     checkLogin();
@@ -120,15 +123,19 @@ export default function MainPage() {
   const shiftBranch = async (branchPath) => {
     if (branchPath === curPath) return;
 
-    let pathList = branchPath.split('/');
-    let node = tree['Home'];
-    for (let i = 1; i < pathList.length; i++) {
-      node = node.children[pathList[i]];
+    try {
+      let pathList = branchPath.split('/');
+      let node = tree['Home'];
+      for (let i = 1; i < pathList.length; i++) {
+        node = node.children[pathList[i]];
+      }
+      setBranch(node);
+      setCurPath(branchPath);
+      await initTransactions(branchPath);
+    } catch (error) {
+      console.error('shiftBranch error:', error);
+      alert('Failed to shift branch. Please try again.');
     }
-    setBranch(node);
-    setCurPath(branchPath);
-    await initTransactions(branchPath);
-    return node;
   };
 
   // If the tree or branch data is not loaded yet, show the loading spinner
