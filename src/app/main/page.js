@@ -32,18 +32,33 @@ export default function MainPage() {
   const openReport = () => setIsReportOpen(true);
   const closeReport = () => setIsReportOpen(false);
 
+
+  const getBackToLogin = async () => {
+    window.location.href = '/';
+  }
+
   const openSettings = async () => {
-    const userinfo = await api_get_user_info();
-    setUseAI(userinfo.useai);
-    setUsername(userinfo.username);
-    setUserEmail(userinfo.email);
-    setIsSettingsOpen(true);
+    try{
+      const userinfo = await api_get_user_info();
+      setUseAI(userinfo.useai);
+      setUsername(userinfo.username);
+      setUserEmail(userinfo.email);
+      setIsSettingsOpen(true);
+    }catch(error){
+      console.error('api_get_user_info error:', error);
+      return;
+    }
+
   };
   const closeSettings = () => setIsSettingsOpen(false);
 
   // Initialize the tree data
   async function initTree() {
     const data = await api_get_tree();
+    console.log('data', 'begin');
+    console.log(data);
+    console.log('data', 'end');
+    
     setTree(data);
 
     let curBranch = data['Home'];
@@ -54,21 +69,21 @@ export default function MainPage() {
 
   // Initialize transaction data based on the current branch path
   async function initTransactions(curBranchPath = 'Home') {
-    const data = await api_refer_daily(curBranchPath);
-    setTransactions(data);
+    try{
+      const data = await api_refer_daily(curBranchPath);
+      setTransactions(data);
+    } catch(error){
+      console.error('api_refer_daily error:', error);
+      alert(error.message);
+    }
+
   }
 
   useEffect(() => {
     // Check Login status
     const checkLogin = async () => {
-      if (!localStorage.getItem('idToken')) {
-        window.location.href = '/';
-        return false;
-      }
-
       const user = await api_get_user_info();
       if (user === null) {
-        localStorage.removeItem('idToken');
         window.location.href = '/';
         return false;
       }
@@ -77,7 +92,6 @@ export default function MainPage() {
         setUserEmail(user.email);
       }catch(error){
         console.error('api_get_user_info error:', error);
-        localStorage.removeItem('idToken');
         window.location.href = '/';
         return false;
       }
@@ -107,7 +121,8 @@ export default function MainPage() {
 
   // Shift to another branch when clicked
   const shiftBranch = async (branchPath) => {
-    if (branchPath === curPath) return;
+    if (branchPath === curPath) 
+      return;
 
     let pathList = branchPath.split('/');
     let node = tree['Home'];

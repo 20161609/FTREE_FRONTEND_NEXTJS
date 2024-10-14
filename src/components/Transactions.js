@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import {formatNumber} from '@/libs/santizer';
 import {
-  upload_transaction,
+  api_upload_transaction,
   api_get_receipt_image,
   api_delete_transaction,
   api_modify_transaction,
@@ -24,7 +24,7 @@ export default function Transactions({
 
   const openEditModal = async (transaction) => {
     if (transaction.receipt) {
-      const receiptImage = await api_get_receipt_image(transaction.receipt);
+      const receiptImage = await api_get_receipt_image(transaction.tid);
       transaction.receiptImage = receiptImage;
     }
     setSelectedTransaction(transaction);
@@ -85,7 +85,7 @@ export default function Transactions({
   const saveNewTransaction = async (newTransaction) => {
     const { date, cashFlow, description, receiptFile } = newTransaction;
     try {
-      await upload_transaction(
+      await api_upload_transaction(
         date,
         curPath,
         cashFlow,
@@ -121,40 +121,34 @@ export default function Transactions({
                 Date
               </th>
               <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
-                In+
-              </th>
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
-                Out-
-              </th>
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
-                Bal·
-              </th>
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
                 Branch
+              </th>
+              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
+                Cashflow
+              </th>
+              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
+                Description
               </th>
             </tr>
           </thead>
           <tbody>
-            {transactions.map((transaction) => (
+            {(transactions || []).map((transaction) => (
               <tr
                 key={transaction.tid}
                 className="border-b cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={() => openEditModal(transaction)}
               >
-                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200">
-                  {transaction.date}
-                </td>
-                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200">
-                  {transaction.cashFlow > 0 ? formatNumber(transaction.cashFlow) : ''}
-                </td>
-                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200">
-                  {transaction.cashFlow < 0 ? formatNumber(-transaction.cashFlow) : ''}
-                </td>
-                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200">
-                  {formatNumber(transaction.balance)}
+                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200">
+                  {transaction.date.substring(2, transaction.date.length)}
                 </td>
                 <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200">
-                  {transaction.branch}
+                  {transaction.branch.substring(curPath.length, transaction.branch.length) || '/'}
+                </td>
+                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200">
+                  {formatNumber(transaction.cashFlow)}
+                </td>
+                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200">
+                  {transaction.description ? transaction.description.substring(0, 5) : '-'}
                 </td>
               </tr>
             ))}

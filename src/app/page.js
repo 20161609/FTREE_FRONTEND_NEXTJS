@@ -1,12 +1,10 @@
-// src/app/page.js
-
 'use client';
 
 import { useState, useEffect } from 'react';
+import { api_test } from '@/libs/api_test';
 import { useRouter } from 'next/navigation';
-import { api_signin } from '@/libs/api_user';
-import { api_get_user_info } from '@/libs/api_user';
-import ModalPassword from '@/components/ModalPassword';
+import { api_signin, api_get_user_info } from '@/libs/api_user';
+import ModalForgetPassword from '@/components/ModalForgetPassword';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,57 +12,39 @@ export default function LoginPage() {
     useremail: '',
     password: '',
   });
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Added isLoading state
 
-  useEffect( () => {
-    const checkLogin = async () => {
-      if (localStorage.getItem('idToken')) {
-        localStorage.removeItem('idToken');
-        try {
-          const user = await api_get_user_info();
-          if (user === null) {
-            console.log('Invalid ID Token...');
-            localStorage.removeItem('idToken');
-            return;
-          }
-          
-          alert(`You are already logged in. ${user}`);
-
-          router.push('/main');  
-        } catch(error) {
-          // Delete IdToken from localStorage
-          console.log('Error:', error);
-          localStorage.removeItem('idToken');
-        }
+  useEffect(() => {
+    const checkSession = async () => {  
+      const test = await api_test();
+      console.log(test);
+      
+      const userinfo = await api_get_user_info();
+      if (userinfo !== null) {
+        router.push('/main');
       }
     };
-
-    checkLogin();
+    checkSession();
   }, []);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);  
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // Disable interactions
     const signinResult = await api_signin(credentials.useremail, credentials.password);
+    setIsLoading(false); // Re-enable interactions
+
     if (signinResult === null) {
       return;
     }
-
+    alert('Login Success');
     router.push('/main');
-  };
-
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
       <div className="w-full max-w-md p-8 space-y-8">
         <div className="text-center">
-          {/* <Image src="/ftree-logo.png" alt="Finance Tree Logo" width={100} height={100} /> */}
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
             Finance Tree
           </h2>
@@ -84,6 +64,7 @@ export default function LoginPage() {
                 onChange={(e) =>
                   setCredentials({ ...credentials, useremail: e.target.value })
                 }
+                disabled={isLoading} // Disable input when loading
                 className="appearance-none rounded w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-green-500 focus:border-green-500"
                 placeholder="ID (Email)"
               />
@@ -101,6 +82,7 @@ export default function LoginPage() {
                 onChange={(e) =>
                   setCredentials({ ...credentials, password: e.target.value })
                 }
+                disabled={isLoading} // Disable input when loading
                 className="appearance-none rounded w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-green-500 focus:border-green-500"
                 placeholder="Password"
               />
@@ -110,8 +92,9 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <button
               type="button"
+              onClick={() => setModalOpen(true)}
               className="text-sm text-green-600 dark:text-green-400 hover:underline"
-              onClick={openModal}
+              disabled={isLoading} // Disable button when loading
             >
               Forgot Password?
             </button>
@@ -120,9 +103,10 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
+              disabled={isLoading} // Disable submit button when loading
               className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
-              Sign In
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </div>
         </form>
@@ -131,15 +115,14 @@ export default function LoginPage() {
             Don't have an account?{' '}
             <a
               href="/signup"
-              className="font-medium text-green-600 dark:text-green-400 hover:underline"
+              className={`font-medium text-green-600 dark:text-green-400 hover:underline ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
             >
               Sign Up
             </a>
           </p>
         </div>
       </div>
-      {/* Rendering the modal component */}
-      {isModalOpen && <ModalPassword closeModal={closeModal} />}
+      <ModalForgetPassword isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

@@ -14,6 +14,7 @@ export default function ModalEdit({
   const [updatedCashFlow, setUpdatedCashFlow] = useState(0);
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptImage, setReceiptImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Loading state added
 
   useEffect(() => {
     if (transaction) {
@@ -40,17 +41,33 @@ export default function ModalEdit({
     setReceiptImage(null);
   };
 
-  const handleSave = () => {
-    saveEditTransaction({
-      ...transaction,
-      description: updatedDescription,
-      cashFlow: updatedCashFlow,
-      receiptFile,
-    });
+  const handleSave = async () => {
+    setIsLoading(true); // Start loading
+    try {
+      await saveEditTransaction({
+        ...transaction,
+        description: updatedDescription,
+        cashFlow: updatedCashFlow,
+        receiptFile,
+      });
+      closeModal(); // Optionally close the modal after saving
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false); // End loading
+    }
   };
 
-  const handleDelete = () => {
-    deleteTransaction(transaction.tid);
+  const handleDelete = async () => {
+    setIsLoading(true); // Start loading
+    try {
+      await deleteTransaction(transaction.tid);
+      closeModal(); // Optionally close the modal after deletion
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false); // End loading
+    }
   };
 
   return (
@@ -82,11 +99,19 @@ export default function ModalEdit({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl transform transition-all sm:max-w-lg w-full p-6">
-                {/* Close */}
+                {/* Loading Indicator */}
+                {isLoading && (
+                  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+                  </div>
+                )}
+
+                {/* Close Button */}
                 <div className="flex justify-end">
                   <button
                     className="text-gray-700 dark:text-gray-200 hover:text-gray-500"
                     onClick={closeModal}
+                    disabled={isLoading} // Disable close button during loading
                   >
                     <svg
                       className="h-6 w-6"
@@ -104,7 +129,7 @@ export default function ModalEdit({
                   </button>
                 </div>
 
-                {/* Moal Content */}
+                {/* Modal Content */}
                 <div className="space-y-6">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Edit Transaction
@@ -132,6 +157,7 @@ export default function ModalEdit({
                       value={updatedDescription}
                       onChange={(e) => setUpdatedDescription(e.target.value)}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -146,6 +172,7 @@ export default function ModalEdit({
                         setUpdatedCashFlow(Number(e.target.value))
                       }
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -169,25 +196,35 @@ export default function ModalEdit({
                       type="file"
                       onChange={handleReceiptChange}
                       className="w-full mt-2"
+                      disabled={isLoading}
                     />
                   </div>
 
                   <div className="flex justify-end space-x-4 mt-6">
                     <button
                       onClick={handleDelete}
-                      className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                      disabled={isLoading}
+                      className={`bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       Delete
                     </button>
                     <button
                       onClick={handleSave}
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
+                      disabled={isLoading}
+                      className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       Save
                     </button>
                     <button
                       onClick={closeModal}
-                      className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md"
+                      disabled={isLoading}
+                      className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       Cancel
                     </button>

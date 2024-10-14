@@ -14,6 +14,7 @@ export default function ModalAddition({
   const [cashFlow, setCashFlow] = useState(''); // Initialize as empty string
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptImage, setReceiptImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Loading state added
 
   const handleReceiptChange = (e) => {
     const file = e.target.files[0];
@@ -28,18 +29,26 @@ export default function ModalAddition({
     setReceiptImage(null);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const parsedCashFlow = parseFloat(cashFlow);
     if (isNaN(parsedCashFlow)) {
       alert('Please enter a valid number for CashFlow.');
       return;
     }
-    saveNewTransaction({
-      date,
-      cashFlow: parsedCashFlow,
-      description,
-      receiptFile,
-    });
+    setIsLoading(true); // Start loading
+    try {
+      await saveNewTransaction({
+        date,
+        cashFlow: parsedCashFlow,
+        description,
+        receiptFile,
+      });
+      closeModal(); // Optionally close the modal after saving
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false); // End loading
+    }
   };
 
   return (
@@ -71,11 +80,19 @@ export default function ModalAddition({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl transform transition-all sm:max-w-lg w-full p-6">
+                {/* Loading Indicator */}
+                {isLoading && (
+                  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+                  </div>
+                )}
+
                 {/* Close Button */}
                 <div className="flex justify-end">
                   <button
                     className="text-gray-700 dark:text-gray-200 hover:text-gray-500"
                     onClick={closeModal}
+                    disabled={isLoading} // Disable during loading
                   >
                     <svg
                       className="h-6 w-6"
@@ -108,6 +125,7 @@ export default function ModalAddition({
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -120,6 +138,7 @@ export default function ModalAddition({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -133,6 +152,7 @@ export default function ModalAddition({
                       value={cashFlow}
                       onChange={(e) => setCashFlow(e.target.value)}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -152,6 +172,7 @@ export default function ModalAddition({
                           <button
                             onClick={removeReceiptImage}
                             className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2.5 rounded-full"
+                            disabled={isLoading}
                           >
                             X
                           </button>
@@ -164,19 +185,26 @@ export default function ModalAddition({
                       type="file"
                       onChange={handleReceiptChange}
                       className="w-full mt-2"
+                      disabled={isLoading}
                     />
                   </div>
 
                   <div className="flex justify-end space-x-4 mt-6">
                     <button
                       onClick={handleSave}
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
+                      disabled={isLoading}
+                      className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       Save
                     </button>
                     <button
                       onClick={closeModal}
-                      className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md"
+                      disabled={isLoading}
+                      className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       Cancel
                     </button>

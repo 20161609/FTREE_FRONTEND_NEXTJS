@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api_possible_signup, api_check_verify, api_signup, api_signin } from '@/libs/api_user';
+import { api_check_verify, api_signup, api_signin } from '@/libs/api_user';
 import { api_send_verify_code } from '@/libs/api_user';
 
 export default function SignupPage() {
@@ -16,10 +16,46 @@ export default function SignupPage() {
   });
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Handler to send verification code to email
+  // Password validation function
+  function validatePassword(password) {
+    const errors = [];
+
+    // Priority 1: Password must be at least 8 characters long.
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long.');
+      return errors; // Return immediately if this condition fails
+    }
+
+    // Priority 2: Password must contain at least one lowercase letter.
+    if (!/[a-z]/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter.');
+      return errors; // Return immediately if this condition fails
+    }
+
+    // Priority 3: Password can only contain allowed special characters or alphanumeric characters.
+    const validSymbols = '!@#$%^&*-+';
+    for (let i = 0; i < password.length; i++) {
+      const char = password[i];
+      if (!/[a-zA-Z0-9]/.test(char) && !validSymbols.includes(char)) {
+        errors.push('Password can only contain the following special characters: !@#$%^&*-+');
+        return errors; // Return immediately if this condition fails
+      }
+    }
+
+    // Priority 4: Password must contain at least one digit.
+    if (!/[0-9]/.test(password)) {
+      errors.push('Password must contain at least one digit.');
+      return errors; // Return immediately if this condition fails
+    }
+
+    return errors;
+  }
+  
+  // Verification code sending handler
   const handleSendCode = async () => {
     setError('');
     // Email format validation
@@ -29,13 +65,23 @@ export default function SignupPage() {
       return;
     }
 
-    let possible = await api_possible_signup(formData.email);
-    if (!possible.status) {
-      setError(possible.message);
+    const res = await api_send_verify_code(formData.email);
+    console.log(res);
+    // Error Cases..
+    if (res == 409){
+      setError('Email already exists.');
+      return;
+    }else if (res == 404){
+      setError('Failed to send verification code. Please try again.');
+      return;
+    }else if (res == 500){
+      setError('Server error occurred.');
+      return;
+    }else if (res != 200){
+      setError('An unknown error occurred.');
       return;
     }
-    await api_send_verify_code(formData.email);
-    
+
     try {
       setLoading(true);
       setIsCodeSent(true);
@@ -43,14 +89,14 @@ export default function SignupPage() {
     } catch (err) {
       setLoading(false);
       if (err.response && err.response.status === 409) {
-        setError('This email already exists.');
+        setError('Email already exists.');
       } else {
         setError('Failed to send verification code. Please try again.');
       }
     }
   };
 
-  // Handler to verify the entered verification code
+  // Verification code confirmation handler
   const handleVerifyCode = async () => {
     setError('');
     if (formData.verificationCode.trim() === '') {
@@ -74,14 +120,20 @@ export default function SignupPage() {
     }
   };
 
-  // Handler for the signup process
+  // Signup handler
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Additional validation (if necessary)
+    // Check if email verification is complete
     if (!isVerified) {
-      setError('Please complete the email verification.');
+      setError('Please complete email verification.');
+      return;
+    }
+
+    // Check for password errors
+    if (passwordErrors.length > 0) {
+      setError('Please fulfill all password conditions.');
       return;
     }
 
@@ -89,7 +141,7 @@ export default function SignupPage() {
       setLoading(true);
       await api_signup(formData.email, formData.password, formData.name);
       setLoading(false);
-      // Redirect to login page after successful signup
+      // Redirect to login page after signup
       router.push('/');
       await api_signin(formData.email, formData.password);
 
@@ -113,7 +165,7 @@ export default function SignupPage() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSignup}>
           <div className="rounded-md shadow-sm space-y-4">
-            {/* Email field and verification code send button */}
+            {/* Email input and verification code send button */}
             <div className="flex flex-col">
               <div className="flex items-center">
                 <input
@@ -134,8 +186,7 @@ export default function SignupPage() {
                     type="button"
                     onClick={handleSendCode}
                     className="ml-2 px-2 py-2 bg-green-600 text-ts text-white rounded-md hover:bg-green-700 focus:outline-none"
-                    disabled={loading}
-                  >
+                    disabled={loading}>
                     {loading ? 'Sending...' : 'Send'}
                   </button>
                 )}
@@ -153,7 +204,7 @@ export default function SignupPage() {
                       setFormData({ ...formData, verificationCode: e.target.value })
                     }
                     className="appearance-none rounded w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Verification Code"
+                    placeholder="Verification Code + Permission Code"
                   />
                   {!isVerified && (
                     <button
@@ -169,7 +220,7 @@ export default function SignupPage() {
               )}
             </div>
 
-            {/* Name field */}
+            {/* Name input field */}
             <div>
               <label htmlFor="name" className="sr-only">
                 Name
@@ -189,7 +240,7 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Password field */}
+            {/* Password input field */}
             <div>
               <label htmlFor="password" className="sr-only">
                 Password
@@ -200,17 +251,30 @@ export default function SignupPage() {
                 type="password"
                 required
                 value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
+                onChange={(e) => {
+                  const password = e.target.value;
+                  setFormData({ ...formData, password });
+                  const errors = validatePassword(password);
+                  setPasswordErrors(errors);
+                }}
                 className="appearance-none rounded w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-green-500 focus:border-green-500"
                 placeholder="Password"
                 disabled={!isVerified}
               />
+              {/* Password validation result display */}
+              {passwordErrors.length > 0 ? (
+                <ul className="text-red-500 text-sm mt-1">
+                  {passwordErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              ) : formData.password && (
+                <p className="text-green-500 text-sm mt-1">All password conditions are met.</p>
+              )}
             </div>
           </div>
 
-          {/* Error message */}
+          {/* Error message display */}
           {error && (
             <div className="text-red-500 text-sm">
               {error}
@@ -221,14 +285,14 @@ export default function SignupPage() {
           <div>
             <button
               type="submit"
-              disabled={!isVerified || loading}
+              disabled={!isVerified || passwordErrors.length > 0 || loading}
               className={`w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                isVerified
+                isVerified && passwordErrors.length === 0
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-gray-400 cursor-not-allowed'
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
             >
-              {loading ? 'Signing Up...' : 'Sign Up'}
+              {loading ? 'Signing up...' : 'Sign Up'}
             </button>
           </div>
         </form>
@@ -239,7 +303,7 @@ export default function SignupPage() {
               href="/"
               className="font-medium text-green-600 dark:text-green-400 hover:underline"
             >
-              Sign In
+              Log In
             </a>
           </p>
         </div>
