@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import BranchTree from '@/components/BranchTree';
 import Transactions from '@/components/Transactions';
 import ModalReport from '@/components/ModalReport';
@@ -11,7 +12,6 @@ import { api_get_user_info } from '@/libs/api_user';
 import { api_refer_daily } from '@/libs/api_transaction';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { useRouter } from 'next/router';
 
 export default function MainPage() {
   const router = useRouter();
