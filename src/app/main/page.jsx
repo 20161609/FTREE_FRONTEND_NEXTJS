@@ -1,4 +1,4 @@
-// src/app/main/page.js
+// src/app/main/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,24 +32,23 @@ export default function MainPage() {
   const openReport = () => setIsReportOpen(true);
   const closeReport = () => setIsReportOpen(false);
 
-
   const getBackToLogin = async () => {
     window.location.href = '/';
-  }
+  };
 
   const openSettings = async () => {
-    try{
+    try {
       const userinfo = await api_get_user_info();
       setUseAI(userinfo.useai);
       setUsername(userinfo.username);
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
-    }catch(error){
+    } catch (error) {
       console.error('api_get_user_info error:', error);
       return;
     }
-
   };
+
   const closeSettings = () => setIsSettingsOpen(false);
 
   // Initialize the tree data
@@ -58,7 +57,7 @@ export default function MainPage() {
     console.log('data', 'begin');
     console.log(data);
     console.log('data', 'end');
-    
+
     setTree(data);
 
     let curBranch = data['Home'];
@@ -69,14 +68,13 @@ export default function MainPage() {
 
   // Initialize transaction data based on the current branch path
   async function initTransactions(curBranchPath = 'Home') {
-    try{
+    try {
       const data = await api_refer_daily(curBranchPath);
       setTransactions(data);
-    } catch(error){
+    } catch (error) {
       console.error('api_refer_daily error:', error);
       alert(error.message);
     }
-
   }
 
   useEffect(() => {
@@ -87,10 +85,10 @@ export default function MainPage() {
         window.location.href = '/';
         return false;
       }
-      try{
+      try {
         setUsername(user.username);
         setUserEmail(user.email);
-      }catch(error){
+      } catch (error) {
         console.error('api_get_user_info error:', error);
         window.location.href = '/';
         return false;
@@ -99,10 +97,9 @@ export default function MainPage() {
       initTree();
       initTransactions();
       return true;
-    }
-    
-    checkLogin();
+    };
 
+    checkLogin();
   }, []);
 
   // Get branch path based on the branch's path string
@@ -121,8 +118,7 @@ export default function MainPage() {
 
   // Shift to another branch when clicked
   const shiftBranch = async (branchPath) => {
-    if (branchPath === curPath) 
-      return;
+    if (branchPath === curPath) return;
 
     let pathList = branchPath.split('/');
     let node = tree['Home'];
