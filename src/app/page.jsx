@@ -22,8 +22,7 @@ export default function LoginPage() {
       
       const userinfo = await api_get_user_info();
       if (userinfo !== null) {
-        router.replace('/main'); // Considered other os
-        // router.push('/main'); // Version for Window
+        router.replace('/main');
       }
     };
     checkSession();
@@ -39,7 +38,7 @@ export default function LoginPage() {
       return;
     }
     alert('Login Success');
-    router.push('/main');
+    router.replace('/main');
   };
 
   return (
