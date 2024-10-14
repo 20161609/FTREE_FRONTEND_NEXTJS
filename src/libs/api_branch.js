@@ -5,7 +5,7 @@ const BASIC_URL = process.env.NEXT_PUBLIC_BASIC_URL;
 // Fetches the tree structure of branches from the server
 export async function api_get_tree() {
     console.log("api_get_tree");
-    const url = `${NEXT_PUBLIC_BASIC_URL}/db/get-tree/`;
+    const url = `${BASIC_URL}/db/get-tree/`;
     console.log('beginA', url);
     try {
         const response = await fetch(url, {
