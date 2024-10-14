@@ -47,6 +47,7 @@ export default function MainPage() {
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
     } catch (error) {
+      alert('사용자 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
       console.error('api_get_user_info error:', error);
       router.push('/');
     }
@@ -100,6 +101,7 @@ export default function MainPage() {
         await initTransactions();
       } catch (error) {
         console.error('checkLogin error:', error);
+        alert('로그인 상태를 확인하는데 실패했습니다. 다시 시도해주세요.', error);
         router.push('/');
       }
     };
