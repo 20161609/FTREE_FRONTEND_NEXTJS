@@ -160,7 +160,7 @@ export default function MainPage() {
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
               onClick={openReport}
             >
-              리포트
+              Report
             </button>
             {/* 설정 버튼 */}
             <button
