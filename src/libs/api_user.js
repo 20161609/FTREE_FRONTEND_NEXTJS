@@ -98,7 +98,7 @@ export async function api_signin(email, password) {
         // Return user details if needed
         console.log(data);
         alert(data.message.cookies.access_token);
-        alert(data.message.cookies.refersh_token);
+        alert(data.message.cookies.refresh_token);
         alert(data.message.cookies.secure);
         alert(data.message.cookies.samesite);
         
