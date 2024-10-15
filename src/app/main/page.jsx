@@ -87,7 +87,7 @@ export default function MainPage() {
   };
 
   useEffect(() => {
-    // 로그인 상태 확인
+    // Check login status
     const checkLogin = async () => {
       try {
         const user = await api_get_user_info();

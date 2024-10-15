@@ -198,8 +198,9 @@ export async function api_get_user_info() {
         }
         
         const body = await response.json();
+
         const data = body.message;
-        alert(body.cookies);
+        alert(body);
         return data;
     } catch (error) {
         return null;
