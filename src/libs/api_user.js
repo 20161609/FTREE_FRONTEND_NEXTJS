@@ -96,6 +96,7 @@ export async function api_signin(email, password) {
 
         // Store authentication token in localStorage (ensure security)
         // Return user details if needed
+        console.log(data);
         return { access_token, userEmail, userName };
     } catch (error) {
         console.error('Sign-in error:', error);
@@ -200,10 +201,6 @@ export async function api_get_user_info() {
         const body = await response.json();
 
         const data = body.message;
-        alert(body);
-        console.log(body);
-        console.log(data);
-        console.log(body.cookies);
         return data;
     } catch (error) {
         return null;
