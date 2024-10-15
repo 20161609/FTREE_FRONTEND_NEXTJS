@@ -201,6 +201,9 @@ export async function api_get_user_info() {
 
         const data = body.message;
         alert(body);
+        console.log(body);
+        console.log(data);
+        console.log(body.cookies);
         return data;
     } catch (error) {
         return null;
