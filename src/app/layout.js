@@ -13,7 +13,7 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Finance Tree3",
+  title: "Finance Tree",
   description: "Manage your finances easily with Finance Tree",
 };
 
@@ -22,8 +22,8 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <link rel="icon" href="/ftree-icon.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/ftree-icon.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/ftree-icon.png" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

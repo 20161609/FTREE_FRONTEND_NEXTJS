@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Finance Tree3
+            Finance Tree
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
