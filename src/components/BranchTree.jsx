@@ -37,14 +37,14 @@ export default function BranchTree({
             return (
               <div key={childBranch.bid} className="flex items-center">
                 <button
-                  className="flex items-center text-left text-gray-700 dark:text-gray-200 hover:underline"
+                  className="flex items-center text-left text-gray-700 dark:text-gray-200 hover:underline notranslate"
                   onClick={() => shiftBranch(childBranch.path)}
                 >
                   <FaFolder className="mr-2" />
                   {childKey}
                 </button>
                 <button
-                  className="text-red-500 ml-2"
+                  className="text-red-500 ml-2 notranslate"
                   onClick={() => deleteBranch(childBranch.path)}
                 >
                   <FaTrash />
