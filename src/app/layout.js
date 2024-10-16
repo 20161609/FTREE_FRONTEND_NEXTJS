@@ -13,7 +13,7 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Finance Tree",
+  title: "Finance Tree3",
   description: "Manage your finances easily with Finance Tree",
 };
 
