@@ -177,7 +177,7 @@ export default function MainPage() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="space-y-4">
           {/* Branch path navigation */}
-          <nav className="text-gray-700 dark:text-gray-200 text-sm">
+          <nav className="text-gray-700 dark:text-gray-200 text-sm notranslate">
             {getBranchPath(branch.path).map((branch, index, array) => (
               <span key={branch.bid}>
                 <button className="hover:underline" onClick={() => shiftBranch(branch.path)}>
