@@ -90,19 +90,13 @@ export async function api_signin(email, password) {
         }
   
         const data = await response.json();
-        const access_token = data.message['access_token'];
         const userEmail = data.message['email'];
         const userName = data.message['username'];
 
         // Store authentication token in localStorage (ensure security)
         // Return user details if needed
-        console.log(data);
-        alert(data.message.cookies.access_token);
-        alert(data.message.cookies.refresh_token);
-        alert(data.message.cookies.secure);
-        alert(data.message.cookies.samesite);
         
-        return { access_token, userEmail, userName };
+        return { userEmail, userName };
     } catch (error) {
         console.error('Sign-in error:', error);
         alert(error.message);
