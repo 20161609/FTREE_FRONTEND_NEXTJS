@@ -497,7 +497,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                         Monthly Income
                       </h4>
                       {monthlyData.length > 0 ? (
-                        <div className="flex justify-center">
+                        <div className="flex justify-center notranslate">
                           <BarChart
                             width={600}
                             height={300}
@@ -524,7 +524,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                         Monthly Outcome
                       </h4>
                       {monthlyData.length > 0 ? (
-                        <div className="flex justify-center">
+                        <div className="flex justify-center notranslate">
                           <BarChart
                             width={600}
                             height={300}
@@ -551,7 +551,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                         Monthly Balance
                       </h4>
                       {monthlyData.length > 0 ? (
-                        <div className="flex justify-center">
+                        <div className="flex justify-center notranslate">
                           <BarChart
                             width={600}
                             height={300}
