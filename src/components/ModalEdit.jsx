@@ -177,7 +177,7 @@ export default function ModalEdit({
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Receipt
                     </label>
                     {receiptImage ? (

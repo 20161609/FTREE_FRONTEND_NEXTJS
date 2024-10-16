@@ -330,7 +330,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                     <div className="flex flex-wrap gap-4">
                       <button
                         disabled={isLoading}
-                        className={`px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none ${
+                        className={`px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none notranslate ${
                           isLoading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         onClick={() => handleDownload('daily')}
@@ -339,7 +339,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                       </button>
                       <button
                         disabled={isLoading}
-                        className={`px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none ${
+                        className={`px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none notranslate ${
                           isLoading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         onClick={() => handleDownload('monthly')}
@@ -348,7 +348,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                       </button>
                       <button
                         disabled={isLoading}
-                        className={`px-4 py-2 bg-[#8B4513] text-white font-semibold rounded-lg hover:bg-[#A0522D] focus:outline-none ${
+                        className={`px-4 py-2 bg-[#8B4513] text-white font-semibold rounded-lg hover:bg-[#A0522D] focus:outline-none notranslate ${
                           isLoading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         onClick={() => handleDownload('tree')}
@@ -421,7 +421,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
 
                   {/* Income Pie Chart */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white notranslate">
                       Income Distribution
                     </h3>
                     {incomeData.length > 0 ? (
@@ -455,7 +455,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
 
                   {/* Expenditure Pie Chart */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white notranslate">
                       Expenditure Distribution
                     </h3>
                     {expenditureData.length > 0 ? (
@@ -494,7 +494,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                     </h3>
                     {/* Monthly Income Bar Chart */}
                     <div>
-                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4">
+                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4 notranslate">
                         Monthly Income
                       </h4>
                       {monthlyData.length > 0 ? (
