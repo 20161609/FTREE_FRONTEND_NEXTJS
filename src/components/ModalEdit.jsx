@@ -136,7 +136,7 @@ export default function ModalEdit({
                   </h3>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Date
                     </label>
                     <input
@@ -149,7 +149,7 @@ export default function ModalEdit({
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Description
                     </label>
                     <input
@@ -162,7 +162,7 @@ export default function ModalEdit({
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       CashFlow
                     </label>
                     <input
@@ -204,7 +204,7 @@ export default function ModalEdit({
                     <button
                       onClick={handleDelete}
                       disabled={isLoading}
-                      className={`bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md ${
+                      className={`bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md notranslate ${
                         isLoading ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
@@ -213,7 +213,7 @@ export default function ModalEdit({
                     <button
                       onClick={handleSave}
                       disabled={isLoading}
-                      className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md ${
+                      className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md notranslate ${
                         isLoading ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
@@ -222,7 +222,7 @@ export default function ModalEdit({
                     <button
                       onClick={closeModal}
                       disabled={isLoading}
-                      className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md ${
+                      className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md notranslate ${
                         isLoading ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
