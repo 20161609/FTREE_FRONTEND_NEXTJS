@@ -235,7 +235,7 @@ export default function ModalSettings({
                       className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                       onClick={handleSave}
                     >
-                      Save
+                      Confirm
                     </button>
                   </div>
                 </div>
