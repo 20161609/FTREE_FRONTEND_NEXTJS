@@ -547,7 +547,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
 
                     {/* Monthly Balance Bar Chart */}
                     <div>
-                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4">
+                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4 notranslate">
                         Monthly Balance
                       </h4>
                       {monthlyData.length > 0 ? (
