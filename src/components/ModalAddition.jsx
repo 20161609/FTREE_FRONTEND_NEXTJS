@@ -1,6 +1,6 @@
 // src/components/ModalAddition.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
 export default function ModalAddition({
@@ -11,10 +11,22 @@ export default function ModalAddition({
 }) {
   const [date, setDate] = useState(initialDate);
   const [description, setDescription] = useState('');
-  const [cashFlow, setCashFlow] = useState(''); // Initialize as empty string
+  const [income, setIncome] = useState('');
+  const [outcome, setOutcome] = useState('');
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptImage, setReceiptImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Loading state added
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setDate(initialDate);
+      setDescription('');
+      setIncome('');
+      setOutcome('');
+      setReceiptFile(null);
+      setReceiptImage(null);
+    }
+  }, [isOpen, initialDate]);
 
   const handleReceiptChange = (e) => {
     const file = e.target.files[0];
@@ -29,13 +41,42 @@ export default function ModalAddition({
     setReceiptImage(null);
   };
 
+  const handleIncomeChange = (e) => {
+    setIncome(e.target.value);
+    if (e.target.value !== '') {
+      setOutcome('');
+    }
+  };
+
+  const handleOutcomeChange = (e) => {
+    setOutcome(e.target.value);
+    if (e.target.value !== '') {
+      setIncome('');
+    }
+  };
+
   const handleSave = async () => {
-    const parsedCashFlow = parseFloat(cashFlow);
-    if (isNaN(parsedCashFlow)) {
-      alert('Please enter a valid number for CashFlow.');
+    if ((income && outcome) || (!income && !outcome)) {
+      alert('Please enter either Income or Outcome, but not both.');
       return;
     }
-    setIsLoading(true); // Start loading
+
+    let parsedCashFlow = 0;
+    if (income) {
+      parsedCashFlow = parseFloat(income);
+      if (isNaN(parsedCashFlow)) {
+        alert('Please enter a valid number for Income.');
+        return;
+      }
+    } else if (outcome) {
+      parsedCashFlow = -parseFloat(outcome);
+      if (isNaN(parsedCashFlow)) {
+        alert('Please enter a valid number for Outcome.');
+        return;
+      }
+    }
+
+    setIsLoading(true);
     try {
       await saveNewTransaction({
         date,
@@ -43,11 +84,11 @@ export default function ModalAddition({
         description,
         receiptFile,
       });
-      closeModal(); // Optionally close the modal after saving
+      closeModal();
     } catch (error) {
       console.error(error);
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
   };
 
@@ -92,7 +133,7 @@ export default function ModalAddition({
                   <button
                     className="text-gray-700 dark:text-gray-200 hover:text-gray-500"
                     onClick={closeModal}
-                    disabled={isLoading} // Disable during loading
+                    disabled={isLoading}
                   >
                     <svg
                       className="h-6 w-6"
@@ -144,15 +185,29 @@ export default function ModalAddition({
 
                   <div>
                     <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
-                      CashFlow
+                      Income
                     </label>
                     <input
                       type="number"
                       step="any"
-                      value={cashFlow}
-                      onChange={(e) => setCashFlow(e.target.value)}
+                      value={income}
+                      onChange={handleIncomeChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
-                      disabled={isLoading}
+                      disabled={isLoading || outcome !== ''}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
+                      Outcome
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={outcome}
+                      onChange={handleOutcomeChange}
+                      className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
+                      disabled={isLoading || income !== ''}
                     />
                   </div>
 
