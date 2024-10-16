@@ -49,7 +49,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
       <div className="w-full max-w-md p-8 space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white notranslate">
             Finance Tree
           </h2>
         </div>
