@@ -13,13 +13,16 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Finance Tree3",
+  title: "Finance Tree",
   description: "Manage your finances easily with Finance Tree",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google" content="notranslate" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
