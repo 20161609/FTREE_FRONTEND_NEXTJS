@@ -1,3 +1,4 @@
+// src/app/login/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,13 +14,16 @@ export default function LoginPage() {
     password: '',
   });
   const [isModalOpen, setModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Added isLoading state
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {  
+    // 로컬 스토리지 초기화
+    localStorage.clear();
+
+    const checkSession = async () => {
       const test = await api_test();
       console.log(test);
-      
+
       const userinfo = await api_get_user_info();
       if (userinfo !== null) {
         router.replace('/main');
@@ -30,9 +34,9 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Disable interactions
+    setIsLoading(true);
     const signinResult = await api_signin(credentials.useremail, credentials.password);
-    setIsLoading(false); // Re-enable interactions
+    setIsLoading(false);
 
     if (signinResult === null) {
       return;
@@ -64,7 +68,7 @@ export default function LoginPage() {
                 onChange={(e) =>
                   setCredentials({ ...credentials, useremail: e.target.value })
                 }
-                disabled={isLoading} // Disable input when loading
+                disabled={isLoading}
                 className="appearance-none rounded w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-green-500 focus:border-green-500"
                 placeholder="ID (Email)"
               />
@@ -82,7 +86,7 @@ export default function LoginPage() {
                 onChange={(e) =>
                   setCredentials({ ...credentials, password: e.target.value })
                 }
-                disabled={isLoading} // Disable input when loading
+                disabled={isLoading}
                 className="appearance-none rounded w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-black focus:outline-none focus:ring-green-500 focus:border-green-500"
                 placeholder="Password"
               />
@@ -94,7 +98,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => setModalOpen(true)}
               className="text-sm text-green-600 dark:text-green-400 hover:underline"
-              disabled={isLoading} // Disable button when loading
+              disabled={isLoading}
             >
               Forgot Password?
             </button>
@@ -103,7 +107,7 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={isLoading} // Disable submit button when loading
+              disabled={isLoading}
               className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
@@ -115,7 +119,9 @@ export default function LoginPage() {
             Don't have an account?{' '}
             <a
               href="/signup"
-              className={`font-medium text-green-600 dark:text-green-400 hover:underline ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+              className={`font-medium text-green-600 dark:text-green-400 hover:underline ${
+                isLoading ? 'pointer-events-none opacity-50' : ''
+              }`}
             >
               Sign Up
             </a>
