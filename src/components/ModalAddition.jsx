@@ -193,7 +193,7 @@ export default function ModalAddition({
                     <button
                       onClick={handleSave}
                       disabled={isLoading}
-                      className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md ${
+                      className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md notranslate ${
                         isLoading ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
@@ -202,7 +202,7 @@ export default function ModalAddition({
                     <button
                       onClick={closeModal}
                       disabled={isLoading}
-                      className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md ${
+                      className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md notranslate ${
                         isLoading ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
