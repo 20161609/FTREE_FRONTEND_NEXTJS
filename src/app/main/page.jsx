@@ -152,7 +152,7 @@ export default function MainPage() {
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           {/* 로고 또는 제목 */}
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Finance Tree</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree</h1>
           {/* 버튼 그룹 */}
           <div className="flex space-x-4">
             {/* 리포트 버튼 */}
