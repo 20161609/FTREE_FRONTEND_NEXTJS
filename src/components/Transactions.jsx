@@ -102,7 +102,7 @@ export default function Transactions({
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white notranslate">
           Transactions
         </h2>
         <button
@@ -117,16 +117,16 @@ export default function Transactions({
         <table className="w-full mb-4">
           <thead>
             <tr className="bg-gray-200 dark:bg-gray-700">
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
+              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200 notranslate">
                 Date
               </th>
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
+              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200 notranslate">
                 Branch
               </th>
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
+              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200 notranslate">
                 Cashflow
               </th>
-              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200">
+              <th className="px-4 py-2 text-xs text-left text-gray-700 dark:text-gray-200 notranslate">
                 Description
               </th>
             </tr>
@@ -138,16 +138,16 @@ export default function Transactions({
                 className="border-b cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={() => openEditModal(transaction)}
               >
-                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200">
+                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
                   {transaction.date.substring(2, transaction.date.length)}
                 </td>
-                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200">
+                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
                   {transaction.branch.substring(curPath.length, transaction.branch.length) || '/'}
                 </td>
-                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200">
+                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200 notranslate">
                   {formatNumber(transaction.cashFlow)}
                 </td>
-                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200">
+                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
                   {transaction.description ? transaction.description.substring(0, 5) : '-'}
                 </td>
               </tr>
