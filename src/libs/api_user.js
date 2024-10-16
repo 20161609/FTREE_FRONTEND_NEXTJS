@@ -92,7 +92,8 @@ export async function api_signin(email, password) {
         const data = await response.json();
         const userEmail = data.message['email'];
         const userName = data.message['username'];
-
+        console.log(data['fox']);
+        
         // Store authentication token in localStorage (ensure security)
         // Return user details if needed
         
