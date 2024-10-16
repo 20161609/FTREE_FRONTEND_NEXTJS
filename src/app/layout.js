@@ -20,11 +20,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/ftree-icon.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/ftree-icon.png" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/ftree-icon.png" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
