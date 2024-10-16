@@ -225,13 +225,13 @@ export default function ModalSettings({
                   <div className="mt-6 flex justify-end">
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 notranslate"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 notranslate mr-2"
                       onClick={handleSave}>
                       Save
                     </button>
                     <button
                       type="button"
-                      className="mr-2 inline-flex justify-center rounded-md border border-transparent bg-gray-200 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 notranslate"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-200 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 notranslate"
                       onClick={closeModal}>
                       Cancel
                     </button>
