@@ -35,7 +35,7 @@ export default function BranchTree({
           Object.keys(children).map((childKey) => {
             const childBranch = children[childKey];
             return (
-              <div key={childBranch.bid} className="flex items-center">
+              <div key={childBranch.bid} className="flex items-center notranslate">
                 <button
                   className="flex items-center text-left text-gray-700 dark:text-gray-200 hover:underline notranslate"
                   onClick={() => shiftBranch(childBranch.path)}
