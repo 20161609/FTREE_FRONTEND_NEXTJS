@@ -384,13 +384,13 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                       <table className="w-full mt-4">
                         <thead>
                           <tr className="bg-gray-200 dark:bg-gray-700">
-                            <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">
+                            <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200 notranslate">
                               Child
                             </th>
-                            <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">
+                            <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200 notranslate">
                               Income
                             </th>
-                            <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">
+                            <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200 notranslate">
                               Outcome
                             </th>
                           </tr>
@@ -400,15 +400,14 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                             ([child, data], index) => (
                               <tr
                                 key={index}
-                                className="border-b border-gray-200 dark:border-gray-700"
-                                >
-                                <td className="px-4 py-2 text-ts text-left text-gray-900 dark:text-gray-200">
+                                className="border-b border-gray-200 dark:border-gray-700 notranslate ">
+                                <td className="px-4 py-2 text-ts text-left text-gray-900 dark:text-gray-200 notranslate ">
                                   {child}
                                 </td>
-                                <td className="px-4 py-2 text-xs text-right text-gray-900 dark:text-gray-200">
+                                <td className="px-4 py-2 text-xs text-right text-gray-900 dark:text-gray-200 notranslate ">
                                   {formatNumber(data.income)}
                                 </td>
-                                <td className="px-4 py-2 text-xs text-right text-gray-900 dark:text-gray-200">
+                                <td className="px-4 py-2 text-xs text-right text-gray-900 dark:text-gray-200 notranslate ">
                                   {formatNumber(data.expenditure)}
                                 </td>
                               </tr>
@@ -494,7 +493,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                     </h3>
                     {/* Monthly Income Bar Chart */}
                     <div>
-                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4 notranslate">
+                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4 notranslate ">
                         Monthly Income
                       </h4>
                       {monthlyData.length > 0 ? (
@@ -521,7 +520,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
 
                     {/* Monthly Outcome Bar Chart */}
                     <div>
-                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4">
+                      <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mt-4 notranslate">
                         Monthly Outcome
                       </h4>
                       {monthlyData.length > 0 ? (
