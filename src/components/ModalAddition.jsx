@@ -117,7 +117,7 @@ export default function ModalAddition({
                   </h3>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Date
                     </label>
                     <input
@@ -130,7 +130,7 @@ export default function ModalAddition({
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Description
                     </label>
                     <input
@@ -143,7 +143,7 @@ export default function ModalAddition({
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       CashFlow
                     </label>
                     <input
@@ -157,7 +157,7 @@ export default function ModalAddition({
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Receipt
                     </label>
                     {receiptImage ? (
