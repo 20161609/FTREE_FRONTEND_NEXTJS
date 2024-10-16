@@ -424,7 +424,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                       Income Distribution
                     </h3>
                     {incomeData.length > 0 ? (
-                      <div className="flex justify-center">
+                      <div className="flex justify-center notranslate">
                         <PieChart width={400} height={300}>
                           <Pie
                             data={incomeData}
@@ -458,7 +458,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
                       Expenditure Distribution
                     </h3>
                     {expenditureData.length > 0 ? (
-                      <div className="flex justify-center">
+                      <div className="flex justify-center notranslate">
                         <PieChart width={400} height={300}>
                           <Pie
                             data={expenditureData}
