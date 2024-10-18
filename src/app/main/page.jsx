@@ -7,7 +7,6 @@ import BranchTree from '@/components/BranchTree';
 import Transactions from '@/components/Transactions';
 import ModalReport from '@/components/ModalReport';
 import ModalSettings from '@/components/ModalSettings';
-import { getParentPath } from '@/libs/santizer';
 import { api_get_tree } from '@/libs/api_branch';
 import { api_get_user_info } from '@/libs/api_user';
 import { api_refer_daily } from '@/libs/api_transaction';
@@ -29,26 +28,12 @@ export default function MainPage() {
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
-  // 모달이 열렸을 때 히스토리 처리
-  useEffect(() => {
-    router.beforePopState(() => {
-      if (isReportOpen || isSettingsOpen) {
-        closeReport();
-        closeSettings();
-        return false; // 뒤로가기 방지
-      }
-      return true;
-    });
-  }, [isReportOpen, isSettingsOpen]);
-
   const openReport = () => {
     setIsReportOpen(true);
-    window.history.pushState(null, '', window.location.href); // 히스토리 추가
   };
 
   const closeReport = () => {
     setIsReportOpen(false);
-    router.back(); // 히스토리 뒤로가기 처리
   };
 
   const openSettings = async () => {
@@ -58,7 +43,6 @@ export default function MainPage() {
       setUsername(userinfo.username);
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
-      window.history.pushState(null, '', window.location.href); // 히스토리 추가
     } catch (error) {
       alert('Failed to load user information. Please try again.');
       console.error('api_get_user_info error:', error);
@@ -68,7 +52,6 @@ export default function MainPage() {
 
   const closeSettings = () => {
     setIsSettingsOpen(false);
-    router.back(); // 히스토리 뒤로가기 처리
   };
 
   const initTree = async () => {
@@ -94,6 +77,27 @@ export default function MainPage() {
       alert('Failed to load transaction data. Please try again.');
     }
   };
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const user = await api_get_user_info();
+        if (!user) {
+          router.replace('/');
+          return;
+        }
+        setUsername(user.username);
+        setUserEmail(user.email);
+        await initTree();
+        await initTransactions();
+      } catch (error) {
+        console.error('checkLogin error:', error);
+        router.replace('/');
+      }
+    };
+
+    checkLogin();
+  }, []);
 
   const getBranchPath = (branchPath) => {
     let pathList = branchPath.split('/');
