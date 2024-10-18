@@ -76,12 +76,14 @@ export default function MainPage() {
     event.preventDefault();
 
     // curPath from Local Storage
+
     let branchPath = localStorage.getItem('curPath');    
+    alert(branchPath);
     if (branchPath === 'Home') {
       alert('You are already on the root branch.');
     } else {
       const parentPath = getParentPath(branchPath);
-      alert('Going back to the parent branch:', parentPath);
+      alert(`Going back to the parent branch: ${parentPath}`);
       await shiftBranch(parentPath);
     }
   };

@@ -38,6 +38,8 @@ export function getParentPath(path) {
 
   if(pathList.length > 1){ 
     pathList.pop();;
+  }else{
+    return path;
   }
   return pathList.join('/');
 }
