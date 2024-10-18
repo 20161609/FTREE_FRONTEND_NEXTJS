@@ -109,8 +109,8 @@ export default function MainPage() {
 
     checkLogin();
     window.addEventListener('popstate', handleBackButton);
-    window.addEventListener('hashchange', handleBackButton);
-    window.addEventListener('beforeunload', handleBackButton);
+    // window.addEventListener('hashchange', handleBackButton);
+    // window.addEventListener('beforeunload', handleBackButton);
 
     return () => {
     };
