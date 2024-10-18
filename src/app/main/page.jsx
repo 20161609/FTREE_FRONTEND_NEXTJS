@@ -107,7 +107,22 @@ export default function MainPage() {
     };
 
     checkLogin();
-    window.addEventListener('popstate', shiftBranch(getParentPath(curPath)));
+
+    const handleBackButton = (event) => {
+      event.preventDefault(); // 기본 동작을 막음
+      if (curPath === 'Home') {
+        // 홈 화면일 경우 앱이 종료되지 않도록 동작을 정의
+        console.log('홈에서 뒤로가기 버튼을 눌렀습니다.');
+      } else {
+        // 홈이 아닌 다른 경로일 경우, 이전 경로로 이동
+        shiftBranch(getParentPath(curPath));
+      }
+    };
+    window.addEventListener('popstate', handleBackButton);
+    return () => {
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
+      window.removeEventListener('popstate', handleBackButton);
+    };
 
   }, []);
 
