@@ -1,3 +1,6 @@
+// src/app/main/page.jsx
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BranchTree from '@/components/BranchTree';
