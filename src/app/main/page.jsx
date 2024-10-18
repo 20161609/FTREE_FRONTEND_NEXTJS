@@ -72,16 +72,17 @@ export default function MainPage() {
     }
   };
 
-  const handleBackButton = (event) => {
+  const handleBackButton = async (event) => {
     event.preventDefault();
 
     // curPath from Local Storage
     let branchPath = localStorage.getItem('curPath');    
     if (branchPath === 'Home') {
+      alert('You are already on the root branch.');
     } else {
       const parentPath = getParentPath(branchPath);
       alert('Going back to the parent branch:', parentPath);
-      shiftBranch(parentPath);
+      await shiftBranch(parentPath);
     }
   };
 
