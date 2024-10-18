@@ -29,6 +29,14 @@ export default function Transactions({ transactions, initTransactions, curPath }
 
   const totalPages = Math.ceil((transactions || []).length / itemsPerPage);
 
+  // 페이지네이션 범위 계산
+  const pageRange = 5; // 한 번에 표시할 페이지 버튼 수
+  const [pageGroup, setPageGroup] = useState(0);
+
+  useEffect(() => {
+    setPageGroup(Math.floor((currentPage - 1) / pageRange));
+  }, [currentPage]);
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const openEditModal = async (transaction) => {
@@ -94,6 +102,15 @@ export default function Transactions({ transactions, initTransactions, curPath }
       console.error('Error uploading transaction:', error);
     }
   };
+
+  // 페이지네이션 버튼 생성
+  const pageNumbers = [];
+  const startPage = pageGroup * pageRange + 1;
+  const endPage = Math.min(startPage + pageRange - 1, totalPages);
+
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
@@ -163,19 +180,37 @@ export default function Transactions({ transactions, initTransactions, curPath }
 
       {/* 페이지네이션 컨트롤 */}
       <div className="flex justify-center mt-4">
-        {Array.from({ length: totalPages }, (_, index) => (
+        {/* 이전 페이지 그룹으로 이동 */}
+        {startPage > 1 && (
           <button
-            key={index}
-            onClick={() => paginate(index + 1)}
+            onClick={() => paginate(startPage - 1)}
+            className="mx-1 px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+          >
+            &laquo;
+          </button>
+        )}
+        {pageNumbers.map((number) => (
+          <button
+            key={number}
+            onClick={() => paginate(number)}
             className={`mx-1 px-3 py-1 rounded ${
-              currentPage === index + 1
+              currentPage === number
                 ? 'bg-primary text-white'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
             }`}
           >
-            {index + 1}
+            {number}
           </button>
         ))}
+        {/* 다음 페이지 그룹으로 이동 */}
+        {endPage < totalPages && (
+          <button
+            onClick={() => paginate(endPage + 1)}
+            className="mx-1 px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+          >
+            &raquo;
+          </button>
+        )}
       </div>
 
       {/* Edit Transaction Modal */}
