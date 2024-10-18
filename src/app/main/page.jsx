@@ -1,4 +1,3 @@
-// src/app/main/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -29,15 +28,8 @@ export default function MainPage() {
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
-  const openReport = () => {
-    setIsReportOpen(true);
-    window.history.pushState({ modal: 'report' }, '', window.location.href);
-  };
-
-  const closeReport = () => {
-    setIsReportOpen(false);
-    window.history.back();
-  };
+  const openReport = () => setIsReportOpen(true);
+  const closeReport = () => setIsReportOpen(false);
 
   const openSettings = async () => {
     try {
@@ -46,7 +38,6 @@ export default function MainPage() {
       setUsername(userinfo.username);
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
-      window.history.pushState({ modal: 'settings' }, '', window.location.href);
     } catch (error) {
       alert('Failed to load user information. Please try again.');
       console.error('api_get_user_info error:', error);
@@ -54,10 +45,7 @@ export default function MainPage() {
     }
   };
 
-  const closeSettings = () => {
-    setIsSettingsOpen(false);
-    window.history.back();
-  };
+  const closeSettings = () => setIsSettingsOpen(false);
 
   const initTree = async () => {
     try {
@@ -83,15 +71,14 @@ export default function MainPage() {
     }
   };
 
-  const handleBackButton = (event) => {
-    event.preventDefault();
-
+  const handleBackButton = () => {
     if (isReportOpen) {
       closeReport();
     } else if (isSettingsOpen) {
       closeSettings();
     } else {
-      // 필요한 경우 추가 동작을 여기에 구현할 수 있습니다.
+      // 필요한 경우 추가 동작을 수행하거나 뒤로가기를 차단
+      window.history.pushState(null, null, window.location.href);
     }
   };
 
@@ -115,10 +102,21 @@ export default function MainPage() {
 
     checkLogin();
 
-    window.addEventListener('popstate', handleBackButton);
+    // 브라우저의 popstate 이벤트 감지
+    const handlePopState = (event) => {
+      event.preventDefault();
+      handleBackButton(); // 직접 정의한 뒤로가기 처리
+    };
+
+    // 처음 페이지 로드 시 상태 추가
+    window.history.pushState({ page: 'main' }, '', window.location.href);
+
+    // popstate 이벤트 리스너 추가
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
-      window.removeEventListener('popstate', handleBackButton);
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
@@ -136,7 +134,8 @@ export default function MainPage() {
   };
 
   const shiftBranch = async (branchPath) => {
-    if (branchPath === curPath) return;
+    if (branchPath === curPath) 
+      return;
 
     try {
       let pathList = branchPath.split('/');
@@ -144,7 +143,7 @@ export default function MainPage() {
       for (let i = 1; i < pathList.length; i++) {
         node = node.children[pathList[i]];
       }
-
+      
       setBranch(node);
       setCurPath(branchPath);
       await initTransactions(branchPath);
@@ -162,7 +161,7 @@ export default function MainPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree1</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree</h1>
           <div className="flex space-x-4">
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
