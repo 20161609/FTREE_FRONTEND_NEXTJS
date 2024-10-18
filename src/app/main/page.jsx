@@ -1,4 +1,3 @@
-// src/app/main/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -72,12 +71,6 @@ export default function MainPage() {
     }
   };
 
-  const handleBackButton = (event) => {
-    event.preventDefault();
-    closeReport();
-    closeSettings();
-  };
-
   useEffect(() => {
     const checkLogin = async () => {
       try {
@@ -100,14 +93,14 @@ export default function MainPage() {
 
     // popstate 이벤트가 발생할 때 상태를 재설정하여 기본 뒤로가기 기능을 막음
     const handlePopState = (event) => {
-      if (event.state === null) {
-        // 기본 뒤로가기 동작을 차단하고 원하는 동작 수행
+      if (!event.state || event.state.page !== 'main') {
         event.preventDefault();
-        handleBackButton(event);
+        closeReport();
+        closeSettings();    
       }
     };
 
-    window.history.pushState({ page: 'main' }, '', window.location.href); // 상태 추가
+    window.history.replaceState({ page: 'main' }, ''); // 상태를 교체하여 기본 동작 차단
     window.addEventListener('popstate', handlePopState);
 
     return () => {
