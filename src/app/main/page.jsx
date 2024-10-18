@@ -88,7 +88,6 @@ export default function MainPage() {
     closeSettings();
   };
 
-  window.addEventListener('popstate', handleBackButton);
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -109,7 +108,9 @@ export default function MainPage() {
     };
 
     checkLogin();
-
+    window.addEventListener('popstate', handleBackButton);
+    window.addEventListener('hashchange', handleBackButton);
+    window.addEventListener('beforeunload', handleBackButton);
 
     return () => {
     };
