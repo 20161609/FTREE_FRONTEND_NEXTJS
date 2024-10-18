@@ -29,8 +29,15 @@ export default function MainPage() {
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
-  const openReport = () => setIsReportOpen(true);
-  const closeReport = () => setIsReportOpen(false);
+  const openReport = () => {
+    setIsReportOpen(true);
+    window.history.pushState({ modal: 'report' }, '', window.location.href);
+  };
+
+  const closeReport = () => {
+    setIsReportOpen(false);
+    window.history.back();
+  };
 
   const openSettings = async () => {
     try {
@@ -39,6 +46,7 @@ export default function MainPage() {
       setUsername(userinfo.username);
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
+      window.history.pushState({ modal: 'settings' }, '', window.location.href);
     } catch (error) {
       alert('Failed to load user information. Please try again.');
       console.error('api_get_user_info error:', error);
@@ -46,7 +54,10 @@ export default function MainPage() {
     }
   };
 
-  const closeSettings = () => setIsSettingsOpen(false);
+  const closeSettings = () => {
+    setIsSettingsOpen(false);
+    window.history.back();
+  };
 
   const initTree = async () => {
     try {
@@ -74,8 +85,14 @@ export default function MainPage() {
 
   const handleBackButton = (event) => {
     event.preventDefault();
-    closeReport();
-    closeSettings();
+
+    if (isReportOpen) {
+      closeReport();
+    } else if (isSettingsOpen) {
+      closeSettings();
+    } else {
+      // 필요한 경우 추가 동작을 여기에 구현할 수 있습니다.
+    }
   };
 
   useEffect(() => {
@@ -98,7 +115,6 @@ export default function MainPage() {
 
     checkLogin();
 
-    window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handleBackButton);
 
     return () => {
@@ -120,8 +136,7 @@ export default function MainPage() {
   };
 
   const shiftBranch = async (branchPath) => {
-    if (branchPath === curPath) 
-      return;
+    if (branchPath === curPath) return;
 
     try {
       let pathList = branchPath.split('/');
@@ -129,7 +144,7 @@ export default function MainPage() {
       for (let i = 1; i < pathList.length; i++) {
         node = node.children[pathList[i]];
       }
-      
+
       setBranch(node);
       setCurPath(branchPath);
       await initTransactions(branchPath);
