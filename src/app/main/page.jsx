@@ -113,6 +113,7 @@ export default function MainPage() {
       if (curPath === 'Home') {
         // 홈 화면일 경우 앱이 종료되지 않도록 동작을 정의
         console.log('홈에서 뒤로가기 버튼을 눌렀습니다.');
+        alert('You are already on the home screen.');
       } else {
         // 홈이 아닌 다른 경로일 경우, 이전 경로로 이동
         shiftBranch(getParentPath(curPath));
