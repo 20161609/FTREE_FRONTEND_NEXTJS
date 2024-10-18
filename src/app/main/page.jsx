@@ -1,6 +1,3 @@
-// src/app/main/page.jsx
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BranchTree from '@/components/BranchTree';
@@ -17,28 +14,20 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 export default function MainPage() {
   const router = useRouter();
 
-  // State variables
   const [transactions, setTransactions] = useState([]);
   const [tree, setTree] = useState(null);
   const [branch, setBranch] = useState(null);
   const [curPath, setCurPath] = useState('Home');
 
-  // Modal state variables
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // User information state variables
   const [useAI, setUseAI] = useState(true);
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
-  // Functions to open/close modals
   const openReport = () => setIsReportOpen(true);
   const closeReport = () => setIsReportOpen(false);
-
-  const getBackToLogin = () => {
-    router.push('/');
-  };
 
   const openSettings = async () => {
     try {
@@ -56,16 +45,10 @@ export default function MainPage() {
 
   const closeSettings = () => setIsSettingsOpen(false);
 
-  // Initialize tree data
   const initTree = async () => {
     try {
       const data = await api_get_tree();
-      console.log('data', 'begin');
-      console.log(data);
-      console.log('data', 'end');
-
       setTree(data);
-
       let curBranch = data['Home'];
       const pathParts = curPath.split('/').slice(1);
       curBranch = pathParts.reduce((branch, part) => branch.children[part], curBranch);
@@ -76,7 +59,6 @@ export default function MainPage() {
     }
   };
 
-  // Initialize transaction data based on the current branch path
   const initTransactions = async (curBranchPath = 'Home') => {
     try {
       const data = await api_refer_daily(curBranchPath);
@@ -88,7 +70,6 @@ export default function MainPage() {
   };
 
   useEffect(() => {
-    // Check login status
     const checkLogin = async () => {
       try {
         const user = await api_get_user_info();
@@ -109,26 +90,22 @@ export default function MainPage() {
     checkLogin();
 
     const handleBackButton = (event) => {
-      event.preventDefault(); // 기본 동작을 막음
+      event.preventDefault();
       if (curPath === 'Home') {
-        // 홈 화면일 경우 앱이 종료되지 않도록 동작을 정의
-        console.log('홈에서 뒤로가기 버튼을 눌렀습니다.');
         alert('You are already on the home screen.');
       } else {
-        // 홈이 아닌 다른 경로일 경우, 이전 경로로 이동
         shiftBranch(getParentPath(curPath));
       }
     };
+
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handleBackButton);
+
     return () => {
-      // 컴포넌트 언마운트 시 이벤트 리스너 제거
       window.removeEventListener('popstate', handleBackButton);
     };
-
   }, []);
 
-  // Get branch path
   const getBranchPath = (branchPath) => {
     let pathList = branchPath.split('/');
     let node = tree['Home'];
@@ -142,7 +119,6 @@ export default function MainPage() {
     return branchList;
   };
 
-  // Shift to another branch
   const shiftBranch = async (branchPath) => {
     if (branchPath === curPath) 
       return;
@@ -162,28 +138,22 @@ export default function MainPage() {
     }
   };
 
-  // Display loading spinner if tree or branch data is not yet loaded
   if (!tree || !branch) {
     return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          {/* Logo or title */}
           <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree</h1>
-          {/* Button group */}
           <div className="flex space-x-4">
-            {/* Report button */}
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
               onClick={openReport}
             >
               Report
             </button>
-            {/* Settings button */}
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
               onClick={openSettings}
@@ -194,10 +164,8 @@ export default function MainPage() {
         </div>
       </div>
 
-      {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="space-y-4">
-          {/* Branch path navigation */}
           <nav className="text-gray-700 dark:text-gray-200 text-sm notranslate">
             {getBranchPath(branch.path).map((branch, index, array) => (
               <span key={branch.bid}>
@@ -209,9 +177,7 @@ export default function MainPage() {
             ))}
           </nav>
 
-          {/* Branch list and transaction details */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Child branch list */}
             <div className="col-span-1">
               <BranchTree
                 branch={branch}
@@ -220,7 +186,6 @@ export default function MainPage() {
                 initTransactions={initTransactions}
               />
             </div>
-            {/* Transaction details */}
             <div className="col-span-1 lg:col-span-2">
               <Transactions
                 transactions={transactions}
@@ -232,7 +197,6 @@ export default function MainPage() {
         </div>
       </main>
 
-      {/* Report modal */}
       <ModalReport
         isOpen={isReportOpen}
         closeModal={closeReport}
@@ -240,7 +204,6 @@ export default function MainPage() {
         branch={branch}
       />
 
-      {/* Settings modal */}
       <ModalSettings
         isOpen={isSettingsOpen}
         closeModal={closeSettings}
