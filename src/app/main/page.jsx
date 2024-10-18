@@ -71,6 +71,17 @@ export default function MainPage() {
     }
   };
 
+  const handleBackButton = () => {
+    if (isReportOpen) {
+      closeReport();
+    } else if (isSettingsOpen) {
+      closeSettings();
+    } else {
+      // 필요한 경우 추가 동작을 수행하거나 뒤로가기를 차단
+      window.history.pushState(null, null, window.location.href);
+    }
+  };
+
   useEffect(() => {
     const checkLogin = async () => {
       try {
@@ -91,19 +102,20 @@ export default function MainPage() {
 
     checkLogin();
 
-    // popstate 이벤트가 발생할 때 상태를 재설정하여 기본 뒤로가기 기능을 막음
+    // 브라우저의 popstate 이벤트 감지
     const handlePopState = (event) => {
-      if (!event.state || event.state.page !== 'main') {
-        event.preventDefault();
-        closeReport();
-        closeSettings();    
-      }
+      event.preventDefault();
+      handleBackButton(); // 직접 정의한 뒤로가기 처리
     };
 
-    window.history.replaceState({ page: 'main' }, ''); // 상태를 교체하여 기본 동작 차단
+    // 처음 페이지 로드 시 상태 추가
+    window.history.pushState({ page: 'main' }, '', window.location.href);
+
+    // popstate 이벤트 리스너 추가
     window.addEventListener('popstate', handlePopState);
 
     return () => {
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
