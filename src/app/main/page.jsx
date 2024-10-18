@@ -95,9 +95,11 @@ export default function MainPage() {
     const handleBackButton = (event) => {
       event.preventDefault();
       if (curPath === 'Home') {
-        alert('You are already on the home screen.');
+        alert('You are already on the home screen.', curPath);
       } else {
-        shiftBranch(getParentPath(curPath));
+        const parentPath = getParentPath(curPath);
+        alert('Going back to the parent branch:', parentPath);
+        shiftBranch(parentPath);
       }
     };
 
