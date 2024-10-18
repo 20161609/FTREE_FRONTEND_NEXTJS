@@ -12,25 +12,30 @@ import {
 } from '@/libs/api_transaction';
 import ModalAddition from '@/components/ModalAddition';
 import ModalEdit from '@/components/ModalEdit';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import './transaction-style.css';
 
-export default function Transactions({ transactions, initTransactions, curPath }) {
+export default function Transactions({ 
+  transactions, initTransactions, curPath, currentPage, setCurrentPage}) {
+  
+  // 트랜잭션 편집 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Number of transactions per page
+  // 페이지네이션 상태
+  // const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // 페이지당 트랜잭션 수
 
-  // Slice transactions for pagination
+  // 페이지네이션을 위한 트랜잭션 슬라이스
   const indexOfLastTransaction = currentPage * itemsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - itemsPerPage;
   const currentTransactions = (transactions || []).slice(indexOfFirstTransaction, indexOfLastTransaction);
 
   const totalPages = Math.ceil((transactions || []).length / itemsPerPage);
 
-  // Calculate pagination range
-  const pageRange = 5; // Number of pages displayed at a time
+  // 페이지네이션 범위 계산
+  const pageRange = 5; // 한 번에 표시할 페이지 수
   const [pageGroup, setPageGroup] = useState(0);
 
   useEffect(() => {
@@ -81,7 +86,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
   };
 
   const deleteTransaction = async (tid) => {
-    if (confirm('Are you sure you want to delete this transaction?')) {
+    if (confirm('이 트랜잭션을 삭제하시겠습니까?')) {
       try {
         await api_delete_transaction(tid);
         await initTransactions(curPath);
@@ -103,7 +108,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
     }
   };
 
-  // Create pagination buttons
+  // 페이지 번호 생성
   const pageNumbers = [];
   const startPage = pageGroup * pageRange + 1;
   const endPage = Math.min(startPage + pageRange - 1, totalPages);
@@ -116,7 +121,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white notranslate">
-          Transactions
+          <h>{transactions.length}</h> Transaction{transactions.length > 1 ? 's' : ''}
         </h2>
         <button
           onClick={openNewModal}
@@ -143,44 +148,45 @@ export default function Transactions({ transactions, initTransactions, curPath }
               </th>
             </tr>
           </thead>
-          <tbody>
+          <TransitionGroup component="tbody">
             {currentTransactions.map((transaction) => (
-              <tr
-                key={transaction.tid}
-                className="border-b cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => openEditModal(transaction)}
-              >
-                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
-                  {transaction.date.substring(2, transaction.date.length)}
-                </td>
-                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
-                  {transaction.branch.substring(curPath.length, transaction.branch.length) || '/'}
-                </td>
-                <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200 notranslate">
-                  {formatNumber(transaction.cashFlow)}
-                </td>
-                <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
-                  {transaction.description ? transaction.description.substring(0, 5) : '-'}
-                </td>
-              </tr>
+              <CSSTransition key={transaction.tid} timeout={300} classNames="transaction">
+                <tr
+                  className="border-b cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => openEditModal(transaction)}
+                >
+                  <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
+                    {transaction.date.substring(2, transaction.date.length)}
+                  </td>
+                  <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
+                    {transaction.branch.substring(curPath.length, transaction.branch.length) || '/'}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200 notranslate">
+                    {formatNumber(transaction.cashFlow)}
+                  </td>
+                  <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
+                    {transaction.description ? transaction.description.substring(0, 5) : '-'}
+                  </td>
+                </tr>
+              </CSSTransition>
             ))}
-            {currentTransactions.length === 0 && (
+            {transactions.length === 0 && (
               <tr>
                 <td
                   colSpan="5"
                   className="px-4 py-2 text-center text-gray-500 dark:text-gray-400"
                 >
-                  No transactions.
+                  {/* No transactions. */}
                 </td>
               </tr>
             )}
-          </tbody>
+          </TransitionGroup>
         </table>
       </div>
 
-      {/* Pagination controls */}
+      {/* 페이지네이션 컨트롤 */}
       <div className="flex justify-center mt-4">
-        {/* Move to previous page group */}
+        {/* 이전 페이지 그룹으로 이동 */}
         {startPage > 1 && (
           <button
             onClick={() => paginate(startPage - 1)}
@@ -202,7 +208,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
             {number}
           </button>
         ))}
-        {/* Move to next page group */}
+        {/* 다음 페이지 그룹으로 이동 */}
         {endPage < totalPages && (
           <button
             onClick={() => paginate(endPage + 1)}
@@ -213,7 +219,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
         )}
       </div>
 
-      {/* Edit Transaction Modal */}
+      {/* 트랜잭션 편집 모달 */}
       {isEditModalOpen && selectedTransaction && (
         <ModalEdit
           isOpen={isEditModalOpen}
@@ -224,7 +230,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
         />
       )}
 
-      {/* New Transaction Modal */}
+      {/* 새 트랜잭션 추가 모달 */}
       {isNewModalOpen && (
         <ModalAddition
           isOpen={isNewModalOpen}

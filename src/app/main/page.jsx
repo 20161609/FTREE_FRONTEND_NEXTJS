@@ -28,6 +28,9 @@ export default function MainPage() {
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
+  // Transaction Page
+  const [currentPage, setCurrentPage] = useState(1);
+
   const openReport = () => {
     setIsReportOpen(true);
   };
@@ -124,6 +127,7 @@ export default function MainPage() {
 
       setBranch(node);
       setCurPath(branchPath);
+      setCurrentPage(1);
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
@@ -139,7 +143,11 @@ export default function MainPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree1</h1>
+          <h1 
+            className="text-xl font-bold text-gray-900 dark:text-white notranslate cursor-pointer" 
+            onClick={() => shiftBranch('Home')}>
+            Finance Tree
+          </h1>
           <div className="flex space-x-4">
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
@@ -184,6 +192,8 @@ export default function MainPage() {
                 transactions={transactions}
                 curPath={curPath}
                 initTransactions={initTransactions}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
               />
             </div>
           </div>
