@@ -137,9 +137,9 @@ export default function MainPage() {
         node = node.children[pathList[i]];
       }
       setBranch(node);
-      alert(curPath, branchPath);
+      alert(`${curPath}, ${branchPath}`);
       setCurPath(branchPath);
-      alert(curPath, branchPath);
+      alert(`${curPath}, ${branchPath}`);
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
