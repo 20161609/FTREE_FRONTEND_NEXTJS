@@ -107,6 +107,8 @@ export default function MainPage() {
     };
 
     checkLogin();
+    window.addEventListener('popstate', shiftBranch(getParentPath(curPath)));
+
   }, []);
 
   // Get branch path
@@ -142,8 +144,6 @@ export default function MainPage() {
       alert('Failed to switch branch. Please try again.');
     }
   };
-
-  window.addEventListener('popstate', shiftBranch(getParentPath(curPath)));
 
   // Display loading spinner if tree or branch data is not yet loaded
   if (!tree || !branch) {
