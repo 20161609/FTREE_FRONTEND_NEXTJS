@@ -7,6 +7,7 @@ import BranchTree from '@/components/BranchTree';
 import Transactions from '@/components/Transactions';
 import ModalReport from '@/components/ModalReport';
 import ModalSettings from '@/components/ModalSettings';
+import { getParentPath } from '@/libs/santizer';
 import { api_get_tree } from '@/libs/api_branch';
 import { api_get_user_info } from '@/libs/api_user';
 import { api_refer_daily } from '@/libs/api_transaction';
@@ -124,7 +125,8 @@ export default function MainPage() {
 
   // Shift to another branch
   const shiftBranch = async (branchPath) => {
-    if (branchPath === curPath) return;
+    if (branchPath === curPath) 
+      return;
 
     try {
       let pathList = branchPath.split('/');
@@ -140,6 +142,8 @@ export default function MainPage() {
       alert('Failed to switch branch. Please try again.');
     }
   };
+
+  window.addEventListener('popstate', shiftBranch(getParentPath(curPath)));
 
   // Display loading spinner if tree or branch data is not yet loaded
   if (!tree || !branch) {

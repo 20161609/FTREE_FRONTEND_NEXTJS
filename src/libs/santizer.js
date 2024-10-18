@@ -32,3 +32,12 @@ export function isValidPassword(password) {
 
   return true;
 }
+
+export function getParentPath(path) {
+  const pathList = path.split('/');
+
+  if(pathList.length > 1){ 
+    pathList.pop();;
+  }
+  return pathList.join('/');
+}
