@@ -74,7 +74,6 @@ export default function MainPage() {
 
   const handleBackButton = (event) => {
     event.preventDefault();
-    alert('alertMessage');
     closeReport();
     closeSettings();
   };
@@ -99,11 +98,20 @@ export default function MainPage() {
 
     checkLogin();
 
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handleBackButton);
+    // popstate 이벤트가 발생할 때 상태를 재설정하여 기본 뒤로가기 기능을 막음
+    const handlePopState = (event) => {
+      if (event.state === null) {
+        // 기본 뒤로가기 동작을 차단하고 원하는 동작 수행
+        event.preventDefault();
+        handleBackButton(event);
+      }
+    };
+
+    window.history.pushState({ page: 'main' }, '', window.location.href); // 상태 추가
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
-      window.removeEventListener('popstate', handleBackButton);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
@@ -148,7 +156,7 @@ export default function MainPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree1</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree</h1>
           <div className="flex space-x-4">
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
