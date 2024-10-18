@@ -2,8 +2,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import {formatNumber} from '@/libs/santizer';
+import React, { useState, useEffect } from 'react';
+import { formatNumber } from '@/libs/santizer';
 import {
   api_upload_transaction,
   api_get_receipt_image,
@@ -13,14 +13,23 @@ import {
 import ModalAddition from '@/components/ModalAddition';
 import ModalEdit from '@/components/ModalEdit';
 
-export default function Transactions({
-  transactions,
-  initTransactions,
-  curPath,
-}) {
+export default function Transactions({ transactions, initTransactions, curPath }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // 페이지당 트랜잭션 수
+
+  // 페이지네이션을 위한 트랜잭션 슬라이스
+  const indexOfLastTransaction = currentPage * itemsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - itemsPerPage;
+  const currentTransactions = (transactions || []).slice(indexOfFirstTransaction, indexOfLastTransaction);
+
+  const totalPages = Math.ceil((transactions || []).length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const openEditModal = async (transaction) => {
     if (transaction.receipt) {
@@ -55,14 +64,7 @@ export default function Transactions({
   const saveEditTransaction = async (updatedTransaction) => {
     const { tid, date, cashFlow, description, receiptFile } = updatedTransaction;
     try {
-      await api_modify_transaction(
-        tid,
-        date,
-        curPath,
-        cashFlow,
-        description,
-        receiptFile
-      );
+      await api_modify_transaction(tid, date, curPath, cashFlow, description, receiptFile);
       await initTransactions(curPath);
       closeEditModal();
     } catch (error) {
@@ -85,13 +87,7 @@ export default function Transactions({
   const saveNewTransaction = async (newTransaction) => {
     const { date, cashFlow, description, receiptFile } = newTransaction;
     try {
-      await api_upload_transaction(
-        date,
-        curPath,
-        cashFlow,
-        description,
-        receiptFile
-      );
+      await api_upload_transaction(date, curPath, cashFlow, description, receiptFile);
       await initTransactions(curPath);
       closeNewModal();
     } catch (error) {
@@ -107,7 +103,6 @@ export default function Transactions({
         </h2>
         <button
           onClick={openNewModal}
-          // className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
           className="bg-primary hover:bg-primary-dark text-white py-2 px-4 rounded-md"
         >
           New
@@ -132,7 +127,7 @@ export default function Transactions({
             </tr>
           </thead>
           <tbody>
-            {(transactions || []).map((transaction) => (
+            {currentTransactions.map((transaction) => (
               <tr
                 key={transaction.tid}
                 className="border-b cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -152,7 +147,7 @@ export default function Transactions({
                 </td>
               </tr>
             ))}
-            {transactions.length === 0 && (
+            {currentTransactions.length === 0 && (
               <tr>
                 <td
                   colSpan="5"
@@ -164,6 +159,23 @@ export default function Transactions({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* 페이지네이션 컨트롤 */}
+      <div className="flex justify-center mt-4">
+        {Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index}
+            onClick={() => paginate(index + 1)}
+            className={`mx-1 px-3 py-1 rounded ${
+              currentPage === index + 1
+                ? 'bg-primary text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
+            }`}
+          >
+            {index + 1}
+          </button>
+        ))}
       </div>
 
       {/* Edit Transaction Modal */}
