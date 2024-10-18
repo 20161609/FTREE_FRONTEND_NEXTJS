@@ -18,19 +18,19 @@ export default function Transactions({ transactions, initTransactions, curPath }
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  // 페이지네이션 상태
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // 페이지당 트랜잭션 수
+  const itemsPerPage = 10; // Number of transactions per page
 
-  // 페이지네이션을 위한 트랜잭션 슬라이스
+  // Slice transactions for pagination
   const indexOfLastTransaction = currentPage * itemsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - itemsPerPage;
   const currentTransactions = (transactions || []).slice(indexOfFirstTransaction, indexOfLastTransaction);
 
   const totalPages = Math.ceil((transactions || []).length / itemsPerPage);
 
-  // 페이지네이션 범위 계산
-  const pageRange = 5; // 한 번에 표시할 페이지 버튼 수
+  // Calculate pagination range
+  const pageRange = 5; // Number of pages displayed at a time
   const [pageGroup, setPageGroup] = useState(0);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
     }
   };
 
-  // 페이지네이션 버튼 생성
+  // Create pagination buttons
   const pageNumbers = [];
   const startPage = pageGroup * pageRange + 1;
   const endPage = Math.min(startPage + pageRange - 1, totalPages);
@@ -178,9 +178,9 @@ export default function Transactions({ transactions, initTransactions, curPath }
         </table>
       </div>
 
-      {/* 페이지네이션 컨트롤 */}
+      {/* Pagination controls */}
       <div className="flex justify-center mt-4">
-        {/* 이전 페이지 그룹으로 이동 */}
+        {/* Move to previous page group */}
         {startPage > 1 && (
           <button
             onClick={() => paginate(startPage - 1)}
@@ -202,7 +202,7 @@ export default function Transactions({ transactions, initTransactions, curPath }
             {number}
           </button>
         ))}
-        {/* 다음 페이지 그룹으로 이동 */}
+        {/* Move to next page group */}
         {endPage < totalPages && (
           <button
             onClick={() => paginate(endPage + 1)}
