@@ -95,7 +95,7 @@ export default function MainPage() {
     const handleBackButton = (event) => {
       event.preventDefault();
       if (curPath === 'Home') {
-        alert(`You are already on the home screen. ${curPath}`);
+        alert(`You are already on the home screen. ${branch.path}`);
       } else {
         const parentPath = getParentPath(curPath);
         alert('Going back to the parent branch:', parentPath);
