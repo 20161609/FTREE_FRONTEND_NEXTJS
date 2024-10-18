@@ -144,7 +144,7 @@ export default function MainPage() {
       
       setBranch(node);
       setCurPath(branchPath);
-      localStorage.setItem('curPath', curPath);
+      localStorage.setItem('curPath', branchPath);
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
