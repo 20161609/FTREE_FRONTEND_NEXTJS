@@ -31,12 +31,10 @@ export default function MainPage() {
 
   const openReport = () => {
     setIsReportOpen(true);
-    window.history.pushState({ modal: 'report' }, '', window.location.href);
   };
 
   const closeReport = () => {
     setIsReportOpen(false);
-    window.history.back();
   };
 
   const openSettings = async () => {
@@ -46,7 +44,6 @@ export default function MainPage() {
       setUsername(userinfo.username);
       setUserEmail(userinfo.email);
       setIsSettingsOpen(true);
-      window.history.pushState({ modal: 'settings' }, '', window.location.href);
     } catch (error) {
       alert('Failed to load user information. Please try again.');
       console.error('api_get_user_info error:', error);
@@ -56,7 +53,6 @@ export default function MainPage() {
 
   const closeSettings = () => {
     setIsSettingsOpen(false);
-    window.history.back();
   };
 
   const initTree = async () => {
@@ -87,19 +83,12 @@ export default function MainPage() {
     event.preventDefault();
 
     // 디버깅을 위한 alert 추가
-    alert('handleBackButton 호출됨');
-
-    if (isReportOpen) {
-      alert('Report 모달 닫기');
-      closeReport();
-    } else if (isSettingsOpen) {
-      alert('Settings 모달 닫기');
-      closeSettings();
-    } else {
-      // 추가 동작이 필요하면 여기에 작성합니다.
-      alert('추가 동작 없음');
-    }
+    // alert('handleBackButton 호출됨');
+    closeReport();
+    closeSettings();
   };
+
+  window.addEventListener('popstate', handleBackButton);
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -121,11 +110,8 @@ export default function MainPage() {
 
     checkLogin();
 
-    // 뒤로가기 이벤트 리스너 등록
-    window.addEventListener('popstate', handleBackButton);
 
     return () => {
-      window.removeEventListener('popstate', handleBackButton);
     };
   }, []);
 
