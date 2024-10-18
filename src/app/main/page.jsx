@@ -88,7 +88,7 @@ export default function MainPage() {
     }
   };
 
-  useEffect(() => {
+  useEffect(async () => {
     const checkLogin = async () => {
       try {
         const user = await api_get_user_info();
@@ -111,7 +111,7 @@ export default function MainPage() {
     localStorage.setItem('curPath', curPath);
 
     window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handleBackButton);
+    window.addEventListener('popstate', await handleBackButton);
 
     return () => {
       window.removeEventListener('popstate', handleBackButton);
@@ -149,6 +149,7 @@ export default function MainPage() {
     } catch (error) {
       console.error('shiftBranch error:', error);
       alert('Failed to switch branch. Please try again.');
+      alert(error);
     }
   };
 
