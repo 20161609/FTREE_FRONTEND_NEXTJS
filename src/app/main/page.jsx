@@ -72,23 +72,14 @@ export default function MainPage() {
     }
   };
 
-  const handleBackButton = async (event) => {
+  const handleBackButton = (event) => {
     event.preventDefault();
-
-    // curPath from Local Storage
-
-    let branchPath = localStorage.getItem('curPath');    
-    alert(branchPath);
-    if (branchPath === 'Home') {
-      alert('You are already on the root branch.');
-    } else {
-      const parentPath = getParentPath(branchPath);
-      alert(`Going back to the parent branch: ${parentPath}`);
-      await shiftBranch(parentPath);
-    }
+    alert('alertMessage');
+    closeReport();
+    closeSettings();
   };
 
-  useEffect(async () => {
+  useEffect(() => {
     const checkLogin = async () => {
       try {
         const user = await api_get_user_info();
@@ -107,11 +98,9 @@ export default function MainPage() {
     };
 
     checkLogin();
-    
-    localStorage.setItem('curPath', curPath);
 
     window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', await handleBackButton);
+    window.addEventListener('popstate', handleBackButton);
 
     return () => {
       window.removeEventListener('popstate', handleBackButton);
@@ -144,12 +133,10 @@ export default function MainPage() {
       
       setBranch(node);
       setCurPath(branchPath);
-      localStorage.setItem('curPath', branchPath);
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
       alert('Failed to switch branch. Please try again.');
-      alert(error);
     }
   };
 
@@ -161,7 +148,7 @@ export default function MainPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree2</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree1</h1>
           <div className="flex space-x-4">
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"

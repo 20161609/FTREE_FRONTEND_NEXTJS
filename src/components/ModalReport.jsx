@@ -18,7 +18,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
   const [monthlyData, setMonthlyData] = useState([]);
   const [isLoading, setIsLoading] = useState(false); // Loading state added
 
-  // 날짜 범위를 위한 상태값
+  // state values for date range
   const [beginDate, setBeginDate] = useState(new Date('0001-01-01'));
   const [endDate, setEndDate] = useState(new Date('9999-12-31'));
 
