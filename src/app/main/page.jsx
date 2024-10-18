@@ -72,6 +72,19 @@ export default function MainPage() {
     }
   };
 
+  const handleBackButton = (event) => {
+    event.preventDefault();
+
+    // curPath from Local Storage
+    let branchPath = localStorage.getItem('curPath');    
+    if (branchPath === 'Home') {
+    } else {
+      const parentPath = getParentPath(branchPath);
+      alert('Going back to the parent branch:', parentPath);
+      shiftBranch(parentPath);
+    }
+  };
+
   useEffect(() => {
     const checkLogin = async () => {
       try {
@@ -91,25 +104,14 @@ export default function MainPage() {
     };
 
     checkLogin();
-
-    const handleBackButton = (event) => {
-      event.preventDefault();
-      let alertMessage = `You are already on the home screen. ${curPath}`
-      alert(alertMessage);
-      return
-      if (curPath === 'Home') {
-      } else {
-        const parentPath = getParentPath(curPath);
-        alert('Going back to the parent branch:', parentPath);
-        shiftBranch(parentPath);
-      }
-    };
+    
+    localStorage.setItem('curPath', curPath);
 
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handleBackButton);
 
     return () => {
-      // window.removeEventListener('popstate', handleBackButton);
+      window.removeEventListener('popstate', handleBackButton);
     };
   }, []);
 
@@ -136,10 +138,10 @@ export default function MainPage() {
       for (let i = 1; i < pathList.length; i++) {
         node = node.children[pathList[i]];
       }
+      
       setBranch(node);
-      alert(`${curPath}, ${branchPath}, ${branch}`)
       setCurPath(branchPath);
-      alert(`${curPath}, ${branchPath}`);
+      localStorage.setItem('curPath', curPath);
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
@@ -155,7 +157,7 @@ export default function MainPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree1</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree2</h1>
           <div className="flex space-x-4">
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
