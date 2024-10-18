@@ -109,7 +109,7 @@ export default function MainPage() {
     window.addEventListener('popstate', handleBackButton);
 
     return () => {
-      window.removeEventListener('popstate', handleBackButton);
+      // window.removeEventListener('popstate', handleBackButton);
     };
   }, []);
 
@@ -138,6 +138,7 @@ export default function MainPage() {
       }
       setBranch(node);
       setCurPath(branchPath);
+      alert(branchPath);
       await initTransactions(branchPath);
     } catch (error) {
       console.error('shiftBranch error:', error);
