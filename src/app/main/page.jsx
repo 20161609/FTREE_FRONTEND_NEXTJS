@@ -1,3 +1,4 @@
+// src/app/main/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -71,15 +72,10 @@ export default function MainPage() {
     }
   };
 
-  const handleBackButton = () => {
-    if (isReportOpen) {
-      closeReport();
-    } else if (isSettingsOpen) {
-      closeSettings();
-    } else {
-      // 필요한 경우 추가 동작을 수행하거나 뒤로가기를 차단
-      window.history.pushState(null, null, window.location.href);
-    }
+  const handleBackButton = (event) => {
+    event.preventDefault();
+    closeReport();
+    closeSettings();
   };
 
   useEffect(() => {
@@ -102,21 +98,11 @@ export default function MainPage() {
 
     checkLogin();
 
-    // 브라우저의 popstate 이벤트 감지
-    const handlePopState = (event) => {
-      event.preventDefault();
-      handleBackButton(); // 직접 정의한 뒤로가기 처리
-    };
-
-    // 처음 페이지 로드 시 상태 추가
-    window.history.pushState({ page: 'main' }, '', window.location.href);
-
-    // popstate 이벤트 리스너 추가
-    window.addEventListener('popstate', handlePopState);
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handleBackButton);
 
     return () => {
-      // 컴포넌트 언마운트 시 이벤트 리스너 제거
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('popstate', handleBackButton);
     };
   }, []);
 
@@ -161,7 +147,7 @@ export default function MainPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white notranslate">Finance Tree1</h1>
           <div className="flex space-x-4">
             <button
               className="text-gray-700 dark:text-gray-200 hover:text-blue-500"
