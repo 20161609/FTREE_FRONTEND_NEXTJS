@@ -1,13 +1,12 @@
 // src/components/BranchTree.js
-
 'use client';
 
 import { FaFolder, FaTrash } from 'react-icons/fa';
 import { api_mkdir, api_rmdir } from '@/libs/api_branch';
 import { useState } from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
-import ModalDelete from '@/components/ModalDelete'; // 모달 컴포넌트 임포트
-import './branch-style.css';
+import ModalDelete from '@/components/ModalDelete';
+import '@/components/branch-style.css';
 
 export default function BranchTree({
   branch, shiftBranch, initTree, initTransactions,
@@ -16,20 +15,20 @@ export default function BranchTree({
   const [branchToDelete, setBranchToDelete] = useState(null);
 
   const addBranch = async () => {
-    const newBranch = prompt('새 브랜치 이름을 입력하세요.');
+    const newBranch = prompt('Input new branch name');
     if (!newBranch) return;
 
     await api_mkdir(branch.path, newBranch);
     await initTree();
   };
 
-  // 브랜치 삭제 확인 모달 열기
+  // Open the branch deletion confirmation modal
   const openDeleteModal = (branchPath, branchName) => {
     setBranchToDelete({ path: branchPath, name: branchName });
     setIsDeleteModalOpen(true);
   };
 
-  // 브랜치 삭제 실행
+  // Execute branch deletion
   const confirmDelete = async () => {
     const { path } = branchToDelete;
     await api_rmdir(path);
@@ -87,7 +86,7 @@ export default function BranchTree({
         </button>
       </div>
 
-      {/* 삭제 확인 모달 */}
+      {/* Modal for confirming Deletion */}
       {isDeleteModalOpen && branchToDelete && (
         <ModalDelete
           isOpen={isDeleteModalOpen}
