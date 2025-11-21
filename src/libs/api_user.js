@@ -33,7 +33,7 @@ export async function api_check_verify(email, code) {
 export async function api_send_verify_code(email) {
     console.log(BASIC_URL);
     try {
-        const url = `${BASIC_URL}auth/verify-email/`;
+        const url = `${BASIC_URL}/auth/verify-email/`;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
