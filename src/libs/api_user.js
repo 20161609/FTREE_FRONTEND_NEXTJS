@@ -211,33 +211,51 @@ export async function api_get_user_info() {
 
 // Update user information
 export async function api_update_userinfo(username, useai) {
+    const url = `${BASIC_URL}/auth/update-userinfo/`;
+
+    // 1) 요청에 넣을 데이터 준비
+    //
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("useai", String(useai)); // 혹시 bool이면 문자열로
+
+    let response;
+
+    // 2) fetch 단계
     try {
-        const url = `${BASIC_URL}/auth/update-userinfo/`;
-        const formData = new FormData();
-        formData.append('username', username);
-        formData.append('useai', useai);
-
-        const response = await fetch(url, {
-            method: 'PUT',
+        response = await fetch(url, {
+            method: "PUT",
             body: formData,
-            credentials: 'include'
+            credentials: "include",
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.log("Error", errorData);
-            return null;
-        }
-
-        const data = await response.json();
-        console.log(data);
-        alert("Successfully updated");
-        return data;
     } catch (error) {
-        console.error('api_update_userinfo error:', error);
-        alert(error.message);
+        console.error("api_update_userinfo - fetch error:", error);
+        alert("Network error while calling update-userinfo");
         return null;
     }
+
+    let jsonData;
+
+    // 3) JSON 파싱 단계
+    try {
+        jsonData = await response.json();
+    } catch (error) {
+        console.error("api_update_userinfo - response.json() error:", error);
+        alert("Failed to parse server response");
+        return null;
+    }
+
+    // 4) 상태 코드 체크 단계
+    if (!response.ok) {
+        console.error("api_update_userinfo - API error body:", jsonData);
+        alert(jsonData?.detail || "Failed to update user info");
+        return null;
+    }
+
+    // 5) 성공
+    console.log("api_update_userinfo - success:", jsonData);
+    alert("Successfully updated");
+    return jsonData;
 }
 
 // When user forgets password, send email to reset password
