@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // 로컬 스토리지 초기화
+    // Init local storage
     localStorage.clear();
 
     const checkSession = async () => {
