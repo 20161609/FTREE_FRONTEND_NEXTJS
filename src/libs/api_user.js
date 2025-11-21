@@ -4,8 +4,6 @@ const BASIC_URL = process.env.NEXT_PUBLIC_BASIC_URL;
 
 // Check verification code for email
 export async function api_check_verify(email, code) {
-    console.log(BASIC_URL);
-
     try {
         const url = new URL(`${BASIC_URL}/auth/verify-email/`);
         url.searchParams.append('email', email);
@@ -27,13 +25,13 @@ export async function api_check_verify(email, code) {
     } catch (error) {
         console.error('api_check_verify error:', error);
         alert(error.message);
-        console.log(BASIC_URL);
         return false;
     }
 }
 
 // Send verification code to email
 export async function api_send_verify_code(email) {
+    console.log(BASIC_URL);
     try {
         const url = `${BASIC_URL}/auth/verify-email/`;
         const response = await fetch(url, {
