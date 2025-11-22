@@ -154,10 +154,9 @@ export async function api_modify_transaction(tid, t_date, branch, cashflow, desc
     }
 
     try {
-        // Fetch API로 PUT 요청 전송    
+        // Fetch API로 PUT 요청 전송
         const url = `${BASIC_URL}/db/modify-transaction/`;
         const token = localStorage.getItem("access_token");
-        console.log('formData', formData);
         const response = await fetch(url, {
             method: 'PUT',
             headers: {'Authorization': `Bearer ${token}`},            

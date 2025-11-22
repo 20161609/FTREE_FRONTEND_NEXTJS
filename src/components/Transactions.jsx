@@ -75,6 +75,7 @@ export default function Transactions({
   };
 
   const saveEditTransaction = async (updatedTransaction) => {
+    console.log(updatedTransaction);
     const { tid, date, cashFlow, description, receiptFile } = updatedTransaction;
     try {
       await api_modify_transaction(tid, date, curPath, cashFlow, description, receiptFile);
