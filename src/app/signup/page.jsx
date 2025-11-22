@@ -192,10 +192,8 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
-      const a = await api_signup(formData.email, password, formData.name);
-      console.log('SIGNUP_PAGE - BEGIN')
-      console.log(a);
-      console.log('SIGNUP_PAGE - END')
+      await api_signup(formData.email, password, formData.name);
+
       // Remove state from localStorage on successful signup
       localStorage.removeItem('signupFormData');
       localStorage.removeItem('signupIsCodeSent');
@@ -203,6 +201,7 @@ export default function SignupPage() {
       setLoading(false);
       // Login and redirect
       await api_signin(formData.email, password);
+      console.log("Sign up & Sign in have been worked well.")
       router.push('/');
     } catch (err) {
       setLoading(false);
