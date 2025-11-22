@@ -14,10 +14,14 @@ export async function api_refer_daily(
     url.searchParams.append('begin_date', begin_date);
     url.searchParams.append('end_date', end_date);
 
+    const token = localStorage.getItem("access_token");
     const response = await fetch(url, {
         method: 'GET',
-        headers: {'Content-Type': 'application/json'},
-        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        // credentials: 'include',
     });
 
     if (response.ok) {
