@@ -136,6 +136,7 @@ export async function api_modify_transaction(tid, t_date, branch, cashflow, desc
     const formData = new FormData();
     formData.append('tid', tid);  // 필수 필드: 트랜잭션 ID
 
+    console.log("PICA", branch);
     // 선택적 필드만 추가 (값이 존재할 때만 추가)
     if (t_date) {
         formData.append('t_date', t_date);
