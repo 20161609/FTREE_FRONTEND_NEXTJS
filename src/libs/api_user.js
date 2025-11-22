@@ -297,8 +297,13 @@ export async function api_update_userinfo(username, useai) {
         formData.append('username', username);
         formData.append('useai', useai);
 
+        const token = localStorage.getItem('access_token')
         const response = await fetch(url, {
             method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-type': 'application/json'
+            },
             body: formData,
             credentials: 'include'
         });
@@ -325,9 +330,13 @@ export async function api_forget_password(email) {
     try {
         const url = `${BASIC_URL}/auth/forget-password/`;
         const body = { email };
+        const token = localStorage.getItem('access_token')
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(body),
         });
 

@@ -4,14 +4,16 @@ const BASIC_URL = process.env.NEXT_PUBLIC_BASIC_URL;
 
 // Fetches the tree structure of branches from the server
 export async function api_get_tree() {
-    console.log("api_get_tree");
     const url = `${BASIC_URL}/db/get-tree/`;
-    console.log('beginA', url);
+    const token = localStorage.getItem('access_token')
     try {
         const response = await fetch(url, {
             method: 'GET',
-            headers: {'Content-type': 'application/json'},
-            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-type': 'application/json'
+            },
+            // credentials: 'include',
         });
   
         if (!response.ok) {
@@ -87,9 +89,13 @@ export async function api_get_tree() {
 export async function api_mkdir(branch_path, child_name) {
     const url = `${BASIC_URL}/db/create-branch/`;
     const body = { "parent": branch_path, "child": child_name };
+    const token = localStorage.getItem('access_token');
     const response = await fetch(url, {
         method: 'POST',
-        headers: {"Content-Type": "application/json"},
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify(body),
         credentials: 'include',
     });
@@ -105,9 +111,13 @@ export async function api_rmdir(branch_path) {
     const url = new URL(`${BASIC_URL}/db/delete-branch/`);
     // file_paths 배열을 쿼리 파라미터로 추가
     url.searchParams.append('branch', branch_path); // 단일 경로 추가
+    const token = localStorage.getItem('access_token')    
     const response = await fetch(url, {
         method: 'DELETE',
-        headers: {"Content-Type": "application/json"},
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
         credentials: 'include',
     });
 
