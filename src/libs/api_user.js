@@ -248,32 +248,46 @@ export async function api_delete_account() {
 
 // Get user information
 export async function api_get_user_info() {
-    console.log("Function ->", 'api_get_user_info');
-    const access_token = localStorage.getItem("access_token");
-    console.log("access_token", access_token)
-
     try {
         const url = `${BASIC_URL}/auth/get-user/`;
-        const token = localStorage.getItem("ftree_token");        
-        const response = await fetch(url, {
-            method: 'GET',
-            // credentials: 'include',
-        });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.log("Error", errorData);
+        // 🔥 1) localStorage에서 access_token 꺼냄
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            console.log("No access token in localStorage");
             return null;
         }
-        
-        const body = await response.json();
 
-        const data = body.message;
-        return data;
+        // 🔥 2) Authorization 헤더 붙여서 요청
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // 🔥 3) 인증 실패
+        if (!response.ok) {
+            let error = null;
+            try {
+                error = await response.json();
+            } catch (e) {}
+            console.log("Error:", error);
+            return null;
+        }
+
+        // 🔥 4) 성공 → JSON 파싱 후 반환
+        const body = await response.json();
+        return body.message;
+
     } catch (error) {
+        console.error("api_get_user_info error:", error);
         return null;
     }
 }
+
+
 
 // Update user information
 export async function api_update_userinfo(username, useai) {
