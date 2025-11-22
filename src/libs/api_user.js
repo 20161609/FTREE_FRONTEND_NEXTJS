@@ -249,7 +249,7 @@ export async function api_delete_account() {
 // Get user information
 export async function api_get_user_info() {
     console.log("Function ->", 'api_get_user_info');
-    const access_token = localStorage.getItem("api_get_user_info");
+    const access_token = localStorage.getItem("access_token");
     console.log("access_token", access_token)
 
     try {
