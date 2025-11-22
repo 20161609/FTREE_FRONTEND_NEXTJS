@@ -82,10 +82,14 @@ export async function api_upload_transaction(
 
     try {
         // Fetch 요청 보내기 (FormData와 Bearer 토큰 포함)
+        const token = localStorage.getItem("access_token");
         const url = `${BASIC_URL}/db/upload-transaction/`;
         const response = await fetch(url, {
             method: 'POST',
-            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            // credentials: 'include',
             body: formData  // FormData 객체를 본문으로 전송
         });
 
