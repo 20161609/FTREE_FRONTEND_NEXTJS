@@ -85,7 +85,6 @@ export async function api_send_verify_code(email) {
 }
 
 
-
 // Sign up a new user
 export async function api_signup(email, password, username) {
     try {

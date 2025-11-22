@@ -192,7 +192,10 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
-      await api_signup(formData.email, password, formData.name);
+      const a = await api_signup(formData.email, password, formData.name);
+      console.log('SIGNUP_PAGE - BEGIN')
+      console.log(a);
+      console.log('SIGNUP_PAGE - END')
       // Remove state from localStorage on successful signup
       localStorage.removeItem('signupFormData');
       localStorage.removeItem('signupIsCodeSent');
