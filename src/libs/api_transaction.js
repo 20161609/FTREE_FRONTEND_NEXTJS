@@ -86,10 +86,7 @@ export async function api_upload_transaction(
         const url = `${BASIC_URL}/db/upload-transaction/`;
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            // credentials: 'include',
+            headers: {'Authorization': `Bearer ${token}`},
             body: formData  // FormData 객체를 본문으로 전송
         });
 
@@ -116,8 +113,11 @@ export async function api_upload_transaction(
 export async function api_get_receipt_image(tid) {
     const url = new URL(`${BASIC_URL}/db/get-receipt/`);
     url.searchParams.append('tid', tid);
+
+    const token = localStorage.getItem("access_token");
     const response = await fetch(url, {
         method: 'GET',
+        headers: {'Authorization': `Bearer ${token}`},
         credentials: 'include',
     });
 
@@ -154,11 +154,12 @@ export async function api_modify_transaction(tid, t_date, branch, cashflow, desc
     }
 
     try {
-        // Fetch API로 PUT 요청 전송
+        // Fetch API로 PUT 요청 전송    
         const url = `${BASIC_URL}/db/modify-transaction/`;
+        const token = localStorage.getItem("access_token");
         const response = await fetch(url, {
             method: 'PUT',
-            credentials: 'include',
+            headers: {'Authorization': `Bearer ${token}`},
             body: formData  // FormData 객체 전송
         });
 
@@ -251,10 +252,14 @@ export async function api_delete_transaction(tid) {
     const url = new URL(`${BASIC_URL}/db/delete-transaction/`);
     url.searchParams.append('tid', tid);
 
+    const token = localStorage.getItem("access_token");
     const response = await fetch(url, {
         method: 'DELETE',
-        headers: {'Content-Type': 'application/json'},
-        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        // credentials: 'include',
     });
 
     if (response.ok) {
