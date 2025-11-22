@@ -118,7 +118,7 @@ export async function api_get_receipt_image(tid) {
     const response = await fetch(url, {
         method: 'GET',
         headers: {'Authorization': `Bearer ${token}`},
-        credentials: 'include',
+        // credentials: 'include',
     });
 
     if (!response.ok) {
@@ -159,7 +159,7 @@ export async function api_modify_transaction(tid, t_date, branch, cashflow, desc
         const token = localStorage.getItem("access_token");
         const response = await fetch(url, {
             method: 'PUT',
-            headers: {'Authorization': `Bearer ${token}`},
+            headers: {'Authorization': `Bearer ${token}`},            
             body: formData  // FormData 객체 전송
         });
 
@@ -187,9 +187,11 @@ export async function api_get_receipt_image_multiple2(tid_list) {
         url.searchParams.append('tid_list', tid); // 단일 경로 추가
     });
 
+    
     const response = await fetch(url, {
         method: 'GET',
-        credentials: 'include',
+        // credentials: 'include',
+        headers: {'Authorization': `Bearer ${token}`}
     });
 
     if (!response.ok) {

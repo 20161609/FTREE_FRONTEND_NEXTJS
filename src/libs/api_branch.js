@@ -89,6 +89,7 @@ export async function api_get_tree() {
 export async function api_mkdir(branch_path, child_name) {
     const url = `${BASIC_URL}/db/create-branch/`;
     const body = { "parent": branch_path, "child": child_name };
+    console.log(body);
     const token = localStorage.getItem('access_token');
     const response = await fetch(url, {
         method: 'POST',
@@ -97,7 +98,7 @@ export async function api_mkdir(branch_path, child_name) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(body),
-        credentials: 'include',
+        // credentials: 'include',
     });
 
     if (!response.ok) {
