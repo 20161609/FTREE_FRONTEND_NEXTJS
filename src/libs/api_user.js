@@ -107,31 +107,61 @@ export async function api_signup(email, password, username) {
 
 // Sign in with email and password
 export async function api_signin(email, password) {
+    const url = `${BASIC_URL}/auth/signin/`;
+
     try {
-        const url = `${BASIC_URL}/auth/signin/`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            // credentials: 'include',
-        });
-  
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to sign in.');
+        console.log("[1] Sending signin request to:", url);
+
+        // 1) FETCH 요청 자체가 실패하는지 확인
+        let response;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+        } catch (fetchErr) {
+            console.error("[FETCH ERROR] fetch() 자체가 실패함:", fetchErr);
+            throw new Error("Fetch 단계에서 실패함 (CORS / 네트워크 문제 가능)");
         }
-  
-        const data = await response.json();
-        const userEmail = data.message['email'];
-        const userName = data.message['username'];
-        const fox = data.message['fox'];
-        
-        // Store authentication token in localStorage (ensure security)
-        // Return user details if needed
-        
+
+        console.log("[2] Response received:", response);
+
+        // 2) status 코드로 실패인지 확인
+        if (!response.ok) {
+            console.log("[STATUS ERROR] response.ok = false, status:", response.status);
+
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (jsonErr) {
+                console.error("[JSON PARSE ERROR in error response]", jsonErr);
+                throw new Error(`Status ${response.status} but error JSON 파싱 실패`);
+            }
+
+            console.error("[SERVER ERROR MESSAGE]", errorData);
+            throw new Error(errorData.detail || `Status ${response.status}`);
+        }
+
+        // 3) JSON 파싱이 문제인지 확인
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonErr) {
+            console.error("[JSON PARSE ERROR in success response]", jsonErr);
+            throw new Error("Response JSON 파싱에서 실패함");
+        }
+
+        console.log("[3] Parsed JSON:", data);
+
+        // 정상 처리
+        const userEmail = data.message?.email;
+        const userName = data.message?.username;
+
         return { userEmail, userName };
+
     } catch (error) {
-        console.error('Sign-in error:', error);
+        console.error('[FINAL SIGN-IN ERROR]', error);
         alert(error.message);
         return null;
     }
