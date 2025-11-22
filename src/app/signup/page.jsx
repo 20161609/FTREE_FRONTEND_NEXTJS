@@ -199,6 +199,7 @@ export default function SignupPage() {
       localStorage.removeItem('signupIsCodeSent');
       localStorage.removeItem('signupIsVerified');
       setLoading(false);
+      
       // Login and redirect
       await api_signin(formData.email, password);
       console.log("Sign up & Sign in have been worked well.")

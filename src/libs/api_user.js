@@ -144,7 +144,7 @@ export async function api_signin(email, password) {
         }
 
         // 3) JSON 파싱이 문제인지 확인
-        let data;
+        let data; 
         try {
             data = await response.json();
         } catch (jsonErr) {
@@ -157,6 +157,7 @@ export async function api_signin(email, password) {
         // 정상 처리
         const userEmail = data.message?.email;
         const userName = data.message?.username;
+        localStorage.setItem('access_token', data.access_token);
 
         return { userEmail, userName };
 
@@ -249,9 +250,10 @@ export async function api_delete_account() {
 export async function api_get_user_info() {
     try {
         const url = `${BASIC_URL}/auth/get-user/`;
+        const token = localStorage.getItem("ftree_token");        
         const response = await fetch(url, {
             method: 'GET',
-            credentials: 'include',
+            // credentials: 'include',
         });
 
         if (!response.ok) {
