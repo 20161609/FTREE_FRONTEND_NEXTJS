@@ -113,7 +113,7 @@ export async function api_signin(email, password) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
-            credentials: 'include',
+            // credentials: 'include',
         });
   
         if (!response.ok) {
@@ -125,7 +125,6 @@ export async function api_signin(email, password) {
         const userEmail = data.message['email'];
         const userName = data.message['username'];
         const fox = data.message['fox'];
-        console.log(fox);
         
         // Store authentication token in localStorage (ensure security)
         // Return user details if needed
