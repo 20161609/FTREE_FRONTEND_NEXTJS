@@ -233,10 +233,12 @@ export async function api_get_receipt_image_multiple(tid_list) {
     tid_list.forEach(tid => {
         url.searchParams.append('tid_list', tid);
     });
-
+ 
+    const token = localStorage.getItem("access_token");
     const response = await fetch(url, {
         method: 'GET',
-        credentials: 'include',
+        headers: {'Authorization': `Bearer ${token}`}
+        // credentials: 'include',
     });
 
     if (!response.ok) {
