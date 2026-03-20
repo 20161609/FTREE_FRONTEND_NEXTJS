@@ -39,6 +39,8 @@ export default function ModalAddition({
     }
 
     const cashflow = -result.cashflow;
+    const date_time = result.date;
+    setDate(date_time);
 
     if (typeof cashflow === 'number' && !Number.isNaN(cashflow)) {
       if (cashflow > 0) {
@@ -61,7 +63,6 @@ export default function ModalAddition({
     setIsAnalyzingReceipt(true);
     try {
       const result = await api_test_receipt(file);
-      console.log(result);
       applyReceiptResult(result);
     } catch (error) {
       console.error('Receipt analyze failed:', error);
