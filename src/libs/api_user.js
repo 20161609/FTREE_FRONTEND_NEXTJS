@@ -80,7 +80,7 @@ export async function api_send_verify_code(email) {
     }
 
     // 4) Finally it's been compelete
-    console.log("api_send_verify_code - success:", data);
+    // console.log("api_send_verify_code - success:", data);
     return response.status;
 }
 
