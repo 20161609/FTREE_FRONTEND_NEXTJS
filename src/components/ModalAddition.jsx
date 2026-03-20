@@ -61,7 +61,7 @@ export default function ModalAddition({
     setIsAnalyzingReceipt(true);
     try {
       const result = await api_test_receipt(file);
-      console.log(api_test_receipt);
+      console.log(result);
       applyReceiptResult(result);
     } catch (error) {
       console.error('Receipt analyze failed:', error);
