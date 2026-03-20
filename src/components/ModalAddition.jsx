@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import { api_test_receipt } from '@/libs/api_test';
 
 export default function ModalAddition({
   isOpen,
@@ -16,6 +17,7 @@ export default function ModalAddition({
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptImage, setReceiptImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzingReceipt, setIsAnalyzingReceipt] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -25,20 +27,52 @@ export default function ModalAddition({
       setOutcome('');
       setReceiptFile(null);
       setReceiptImage(null);
+      setIsAnalyzingReceipt(false);
     }
   }, [isOpen, initialDate]);
 
-  const handleReceiptChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setReceiptFile(file);
-      setReceiptImage(URL.createObjectURL(file));
+  const applyReceiptResult = (result) => {
+    if (!result) return;
+
+    if (result.description) {
+      setDescription(result.description);
+    }
+
+    const cashflow = result.cashflow;
+
+    if (typeof cashflow === 'number' && !Number.isNaN(cashflow)) {
+      if (cashflow > 0) {
+        setIncome(String(cashflow));
+        setOutcome('');
+      } else if (cashflow < 0) {
+        setOutcome(String(Math.abs(cashflow)));
+        setIncome('');
+      }
+    }
+  };
+
+  const handleReceiptChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setReceiptFile(file);
+    setReceiptImage(URL.createObjectURL(file));
+
+    setIsAnalyzingReceipt(true);
+    try {
+      const result = await api_test_receipt(file);
+      applyReceiptResult(result);
+    } catch (error) {
+      console.error('Receipt analyze failed:', error);
+    } finally {
+      setIsAnalyzingReceipt(false);
     }
   };
 
   const removeReceiptImage = () => {
     setReceiptFile(null);
     setReceiptImage(null);
+    setIsAnalyzingReceipt(false);
   };
 
   const handleIncomeChange = (e) => {
@@ -62,6 +96,7 @@ export default function ModalAddition({
     }
 
     let parsedCashFlow = 0;
+
     if (income) {
       parsedCashFlow = parseFloat(income);
       if (isNaN(parsedCashFlow)) {
@@ -92,10 +127,11 @@ export default function ModalAddition({
     }
   };
 
+  const isBusy = isLoading || isAnalyzingReceipt;
+
   return (
     <Transition appear show={isOpen} as={React.Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
-        {/* Background Overlay */}
         <Transition.Child
           as={React.Fragment}
           enter="ease-out duration-300"
@@ -108,7 +144,6 @@ export default function ModalAddition({
           <div className="fixed inset-0 bg-black bg-opacity-50" />
         </Transition.Child>
 
-        {/* Modal Content */}
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-full p-4">
             <Transition.Child
@@ -121,19 +156,22 @@ export default function ModalAddition({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl transform transition-all sm:max-w-lg w-full p-6">
-                {/* Loading Indicator */}
-                {isLoading && (
+                {isBusy && (
                   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+                      <p className="text-white text-sm">
+                        {isAnalyzingReceipt ? 'Analyzing receipt...' : 'Saving...'}
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                {/* Close Button */}
                 <div className="flex justify-end">
                   <button
                     className="text-gray-700 dark:text-gray-200 hover:text-gray-500"
                     onClick={closeModal}
-                    disabled={isLoading}
+                    disabled={isBusy}
                   >
                     <svg
                       className="h-6 w-6"
@@ -151,7 +189,6 @@ export default function ModalAddition({
                   </button>
                 </div>
 
-                {/* Modal Content */}
                 <div className="space-y-6">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     New Transaction
@@ -166,7 +203,7 @@ export default function ModalAddition({
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
-                      disabled={isLoading}
+                      disabled={isBusy}
                     />
                   </div>
 
@@ -179,7 +216,7 @@ export default function ModalAddition({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
-                      disabled={isLoading}
+                      disabled={isBusy}
                     />
                   </div>
 
@@ -193,7 +230,7 @@ export default function ModalAddition({
                       value={income}
                       onChange={handleIncomeChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
-                      disabled={isLoading || outcome !== ''}
+                      disabled={isBusy || outcome !== ''}
                     />
                   </div>
 
@@ -207,7 +244,7 @@ export default function ModalAddition({
                       value={outcome}
                       onChange={handleOutcomeChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:text-gray-300"
-                      disabled={isLoading || income !== ''}
+                      disabled={isBusy || income !== ''}
                     />
                   </div>
 
@@ -215,6 +252,7 @@ export default function ModalAddition({
                     <label className="block text-gray-700 dark:text-gray-300 mb-1 notranslate">
                       Receipt
                     </label>
+
                     {receiptImage ? (
                       <div className="mb-2">
                         <img
@@ -227,7 +265,7 @@ export default function ModalAddition({
                           <button
                             onClick={removeReceiptImage}
                             className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2.5 rounded-full"
-                            disabled={isLoading}
+                            disabled={isBusy}
                           >
                             X
                           </button>
@@ -236,29 +274,37 @@ export default function ModalAddition({
                     ) : (
                       <p className="text-gray-500">No Image</p>
                     )}
+
                     <input
                       type="file"
+                      accept="image/*"
                       onChange={handleReceiptChange}
                       className="w-full mt-2"
-                      disabled={isLoading}
+                      disabled={isBusy}
                     />
+
+                    {isAnalyzingReceipt && (
+                      <p className="text-sm text-blue-500 mt-2">
+                        Analyzing receipt and filling fields...
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex justify-end space-x-4 mt-6">
                     <button
                       onClick={handleSave}
-                      disabled={isLoading}
+                      disabled={isBusy}
                       className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md notranslate ${
-                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        isBusy ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
                       Save
                     </button>
                     <button
                       onClick={closeModal}
-                      disabled={isLoading}
+                      disabled={isBusy}
                       className={`bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md notranslate ${
-                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        isBusy ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
                       Cancel
