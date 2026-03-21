@@ -16,24 +16,23 @@ export default function ModalSettings({
 }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [displayCurrency, setDisplayCurrency] = useState('CAD');
 
   useEffect(() => {
-    // Function to handle the ESC key press without closing the modal
     const handleEscKey = (event) => {
       if (event.key === 'Escape') {
-        // alert('ESC key was pressed!'); // Display an alert instead of closing the modal
-        // event.preventDefault(); // Prevent the default behavior (closing the modal)
+        // Do nothing
       }
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleEscKey); // Add event listener when modal is open
+      window.addEventListener('keydown', handleEscKey);
     } else {
-      window.removeEventListener('keydown', handleEscKey); // Remove event listener when modal is closed
+      window.removeEventListener('keydown', handleEscKey);
     }
 
     return () => {
-      window.removeEventListener('keydown', handleEscKey); // Clean up event listener when component unmounts or state changes
+      window.removeEventListener('keydown', handleEscKey);
     };
   }, [isOpen]);
 
@@ -43,6 +42,10 @@ export default function ModalSettings({
 
   const handleToggleAI = () => {
     setUseAI(!useAI);
+  };
+
+  const handleCurrencyChange = (e) => {
+    setDisplayCurrency(e.target.value);
   };
 
   const handleSave = async () => {
@@ -96,7 +99,7 @@ export default function ModalSettings({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={() => { /* Do nothing to prevent closing */ }}>
+      <Dialog as="div" className="relative z-10" onClose={() => {}}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -127,6 +130,7 @@ export default function ModalSettings({
                 >
                   Settings
                 </Dialog.Title>
+
                 <div className="mt-4 space-y-4">
                   {/* Name Change */}
                   <div>
@@ -142,13 +146,13 @@ export default function ModalSettings({
                   </div>
 
                   {/* AI Toggle */}
-                  <div className="flex items-center">
-                    <label className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  <div className="flex items-center justify-between">
+                    <label className="mr-4 text-sm font-medium text-gray-700 dark:text-gray-200">
                       Use AI for Reading Receipts
                     </label>
                     <button
                       onClick={handleToggleAI}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full ${
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
                         useAI ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
                       }`}
                     >
@@ -158,6 +162,24 @@ export default function ModalSettings({
                         }`}
                       />
                     </button>
+                  </div>
+
+                  {/* Display Currency */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Display Currency
+                    </label>
+                    <select
+                      value={displayCurrency}
+                      onChange={handleCurrencyChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    >
+                      <option value="CAD">CAD</option>
+                      <option value="KRW">KRW</option>
+                      <option value="USD">USD</option>
+                      <option value="JPY">JPY</option>
+                      <option value="EUR">EUR</option>
+                    </select>
                   </div>
 
                   {/* Change Password */}
@@ -200,14 +222,14 @@ export default function ModalSettings({
 
                   {/* Confirm Account Deletion */}
                   {isConfirmingDelete && (
-                    <div className="mt-4 p-4 bg-red-100 dark:bg-red-200 rounded-md">
+                    <div className="mt-4 rounded-md bg-red-100 p-4 dark:bg-red-200">
                       <p className="text-sm text-red-800 dark:text-red-900">
                         Are you sure you want to delete your account? This action cannot be undone.
                       </p>
                       <div className="mt-4 flex justify-end space-x-2">
                         <button
                           onClick={() => setIsConfirmingDelete(false)}
-                          className="inline-flex justify-center rounded-md border border-transparent bg-gray-200 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                          className="inline-flex justify-center rounded-md border border-transparent bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                         >
                           Cancel
                         </button>
@@ -225,14 +247,16 @@ export default function ModalSettings({
                   <div className="mt-6 flex justify-end">
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 notranslate mr-2"
-                      onClick={handleSave}>
+                      className="mr-2 inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 notranslate"
+                      onClick={handleSave}
+                    >
                       Save
                     </button>
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-200 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 notranslate"
-                      onClick={closeModal}>
+                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 notranslate"
+                      onClick={closeModal}
+                    >
                       Cancel
                     </button>
                   </div>
