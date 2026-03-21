@@ -121,6 +121,12 @@ export default function ModalAddition({
         parsedCashFlow = parsedCashFlow
       case 'CAD':
         parsedCashFlow = parsedCashFlow * 100
+      case 'USD':
+        parsedCashFlow = parsedCashFlow * 100
+      case 'JPY':
+        parsedCashFlow = parsedCashFlow
+      case 'EUR':
+        parsedCashFlow = parsedCashFlow * 100
     }
 
     setIsLoading(true);

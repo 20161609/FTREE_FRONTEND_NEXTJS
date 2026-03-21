@@ -4,8 +4,14 @@
 export function formatNumber(number, displayCurrency) {
   switch (displayCurrency){
     case 'KRW':
-      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return 'KRW '+ number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     case 'CAD':
+      return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case 'USD':
+      return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case 'JPY':
+      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    case 'EUR':
       return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
