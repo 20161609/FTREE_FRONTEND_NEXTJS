@@ -116,8 +116,12 @@ export default function ModalAddition({
         return;
       }
     }
-    console.log(parsedCashFlow, 'parsedCashFlow')
-    return
+    switch(displayCurrency){
+      case 'KRW':
+        parsedCashFlow = parsedCashFlow
+      case 'CAD':
+        parsedCashFlow = parsedCashFlow * 100
+    }
 
     setIsLoading(true);
     try {
