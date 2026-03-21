@@ -296,7 +296,7 @@ export async function api_update_userinfo(username, useai, displayCurrency) {
         const formData = new FormData();
         formData.append('username', username);
         formData.append('useai', useai);
-        formData.append('displayCurrency', displayCurrency);
+        formData.append('display_currency', displayCurrency);
 
         const token = localStorage.getItem('access_token')
         const response = await fetch(url, {
