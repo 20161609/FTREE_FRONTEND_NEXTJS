@@ -12,11 +12,12 @@ export default function ModalSettings({
   setUsername,
   useAI,
   setUseAI,
-  userEmail
+  userEmail,
+  displayCurrency,
+  setDisplayCurrency,
 }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const [displayCurrency, setDisplayCurrency] = useState('CAD');
 
   useEffect(() => {
     const handleEscKey = (event) => {
@@ -50,7 +51,7 @@ export default function ModalSettings({
 
   const handleSave = async () => {
     try {
-      const updateResult = await api_update_userinfo(username, useAI);
+      const updateResult = await api_update_userinfo(username, useAI, displayCurrency);
       if (updateResult === null) {
         return;
       }

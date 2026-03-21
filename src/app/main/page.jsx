@@ -27,6 +27,7 @@ export default function MainPage() {
   const [useAI, setUseAI] = useState(true);
   const [username, setUsername] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [displayCurrency, setDisplayCurrency] = useState('CAD');
 
   // Transaction Page
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,6 +46,7 @@ export default function MainPage() {
       setUseAI(userinfo.useai);
       setUsername(userinfo.username);
       setUserEmail(userinfo.email);
+      setDisplayCurrency(userinfo.display_currency);
       setIsSettingsOpen(true);
     } catch (error) {
       alert('Failed to load user information. Please try again.');
@@ -215,6 +217,8 @@ export default function MainPage() {
         username={username}
         setUsername={setUsername}
         userEmail={userEmail}
+        setDisplayCurrency={setDisplayCurrency}
+        displayCurrency={displayCurrency}
       />
     </div>
   );
