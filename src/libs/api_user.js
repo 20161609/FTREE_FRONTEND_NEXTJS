@@ -300,7 +300,7 @@ export async function api_update_userinfo(username, useai) {
         const token = localStorage.getItem('access_token')
         const response = await fetch(url, {
             method: 'PUT',
-            // headers: {'Authorization': `Bearer ${token}`,'Content-type': 'application/json'},
+            headers: {'Authorization': `Bearer ${token}`},
             body: formData,
             credentials: 'include'
         });
