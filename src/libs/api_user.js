@@ -290,12 +290,13 @@ export async function api_get_user_info() {
 
 
 // Update user information
-export async function api_update_userinfo(username, useai) {
+export async function api_update_userinfo(username, useai, displayCurrency) {
     try {
         const url = `${BASIC_URL}/auth/update-userinfo/`;
         const formData = new FormData();
         formData.append('username', username);
         formData.append('useai', useai);
+        formData.append('displayCurrency', displayCurrency);
 
         const token = localStorage.getItem('access_token')
         const response = await fetch(url, {
