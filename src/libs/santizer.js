@@ -4,7 +4,7 @@
 export function formatNumber(number, displayCurrency) {
   switch (displayCurrency){
     case 'KRW':
-      return 'KRW '+ number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     case 'CAD':
       return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'USD':

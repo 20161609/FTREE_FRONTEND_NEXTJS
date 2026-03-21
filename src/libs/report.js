@@ -11,7 +11,7 @@ import { formatDynamicAPIAccesses } from 'next/dist/server/app-render/dynamic-re
 
 
 
-export async function download_daily_xlsx(transactions, beginDate, endDate) {
+export async function download_daily_xlsx(transactions, beginDate, endDate, displayCurrency) {
     if(transactions.length === 0) {
         alert('No transactions.');
         return;
@@ -133,7 +133,7 @@ export async function download_daily_xlsx(transactions, beginDate, endDate) {
     document.body.removeChild(link);
 }
 
-export async function download_monthly_xlsx(transactions, beginDate, endDate, period=1) {
+export async function download_monthly_xlsx(transactions, beginDate, endDate, period=1, displayCurrency) {
     if(transactions.length === 0) {
         alert('No transactions.');
         return;
@@ -297,7 +297,7 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
     return dataBox;
 }
 
-export async function download_receipt_pdf(transactions, beginDate, endDate, period=1) {
+export async function download_receipt_pdf(transactions, beginDate, endDate, period=1, displayCurrency) {
     if(transactions.length === 0) {
         alert('No transactions.');
         return;
@@ -378,9 +378,9 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
             rows.push([
                 tr.date,
                 tr.branch,
-                formatNumber(income),
-                formatNumber(outcome),
-                formatNumber(balance),
+                formatNumber(income, displayCurrency),
+                formatNumber(outcome, displayCurrency),
+                formatNumber(balance, displayCurrency),
                 imageIndex
             ]);
             
@@ -496,7 +496,7 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
     doc.save('accounting_ledger.pdf');
 }
 
-export async function download_tree_xlsx2(transactions, beginDate, endDate, period = 1, branch, maxDepth = 10) {
+export async function download_tree_xlsx2(transactions, beginDate, endDate, period = 1, branch, maxDepth = 10, displayCurrency) {
     const branchDict = {};
     const tree = {};
     const ROOT_BRANCH_PATH = branch.path;
@@ -605,7 +605,8 @@ export async function download_tree_xlsx(
     endDate,
     period = 1,
     branch,
-    maxDepth = 10
+    maxDepth = 10,
+    displayCurrency
   ) {
     const branchDict = {};
     const ROOT_BRANCH_PATH = branch.path;
@@ -748,9 +749,9 @@ export async function download_tree_xlsx(
     };
   
     // Function to format numbers
-    const formatNumber = (num) => {
-      return num.toLocaleString('en-US', { minimumFractionDigits: 0 });
-    };
+    // const formatNumber = (num) => {
+    //   return num.toLocaleString('en-US', { minimumFractionDigits: 0 });
+    // };
   
     // Function to calculate color based on depth
     const getDepthColor = (depth, maxDepth) => {
@@ -775,36 +776,36 @@ export async function download_tree_xlsx(
     let columnIndex = 2; // Column index starts from 2
     dataBox.forEach((data, index) => {
       // Set 'Period' header (merge B1:C1, D1:E1, ...)
-      incomeSheet.mergeCells(1, columnIndex, 1, columnIndex + 1);
-      incomeSheet.getCell(1, columnIndex).value = `Period ${index + 1}`;
-      incomeSheet.getCell(1, columnIndex).style = headerStyle;
+        incomeSheet.mergeCells(1, columnIndex, 1, columnIndex + 1);
+        incomeSheet.getCell(1, columnIndex).value = `Period ${index + 1}`;
+        incomeSheet.getCell(1, columnIndex).style = headerStyle;
   
-      outcomeSheet.mergeCells(1, columnIndex, 1, columnIndex + 1);
-      outcomeSheet.getCell(1, columnIndex).value = `Period ${index + 1}`;
-      outcomeSheet.getCell(1, columnIndex).style = headerStyle;
+        outcomeSheet.mergeCells(1, columnIndex, 1, columnIndex + 1);
+        outcomeSheet.getCell(1, columnIndex).value = `Period ${index + 1}`;
+        outcomeSheet.getCell(1, columnIndex).style = headerStyle;
   
-      // Date format: 'YY.MM.DD'
-      const formatDate = (date) => {
-        const year = date.getFullYear().toString().slice(2);
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}.${month}.${day}`;
-      };
+        // Date format: 'YY.MM.DD'
+        const formatDate = (date) => {
+            const year = date.getFullYear().toString().slice(2);
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}.${month}.${day}`;
+        };
   
-      // Set start and end dates and apply styles
-      incomeSheet.getCell(2, columnIndex).value = formatDate(data.startDate);
-      incomeSheet.getCell(2, columnIndex).style = dataStyle;
+        // Set start and end dates and apply styles
+        incomeSheet.getCell(2, columnIndex).value = formatDate(data.startDate);
+        incomeSheet.getCell(2, columnIndex).style = dataStyle;
   
-      incomeSheet.getCell(2, columnIndex + 1).value = formatDate(data.endDate);
-      incomeSheet.getCell(2, columnIndex + 1).style = dataStyle;
+        incomeSheet.getCell(2, columnIndex + 1).value = formatDate(data.endDate);
+        incomeSheet.getCell(2, columnIndex + 1).style = dataStyle;
   
-      outcomeSheet.getCell(2, columnIndex).value = formatDate(data.startDate);
-      outcomeSheet.getCell(2, columnIndex).style = dataStyle;
+        outcomeSheet.getCell(2, columnIndex).value = formatDate(data.startDate);
+        outcomeSheet.getCell(2, columnIndex).style = dataStyle;
   
-      outcomeSheet.getCell(2, columnIndex + 1).value = formatDate(data.endDate);
-      outcomeSheet.getCell(2, columnIndex + 1).style = dataStyle;
+        outcomeSheet.getCell(2, columnIndex + 1).value = formatDate(data.endDate);
+        outcomeSheet.getCell(2, columnIndex + 1).style = dataStyle;
   
-      columnIndex += 2;
+        columnIndex += 2;
     });
   
     // Set 'Total' header (merge D1:E1, G1:H1, ...)
@@ -819,32 +820,28 @@ export async function download_tree_xlsx(
     // Add income and expenses for each branch to the sheet
     let rowIndex = 3; // Row index starts from 3
     for (let branchPath in branchDict) {
-      // Aggregate income and expenses by branch
-      const depth = branchPath.split('/').length - 1; // Depth of the branch
+        // Aggregate income and expenses by branch
+        const depth = branchPath.split('/').length - 1; // Depth of the branch
   
-      // Calculate color based on depth
-      const depthColor = getDepthColor(depth, maxDepth);
+        // Calculate color based on depth
+        const depthColor = getDepthColor(depth, maxDepth);
   
-      // Branch path
-      incomeSheet.getCell(rowIndex, 1).value = branchPath;
-      outcomeSheet.getCell(rowIndex, 1).value = branchPath;
+        // Branch path
+        incomeSheet.getCell(rowIndex, 1).value = branchPath;
+        outcomeSheet.getCell(rowIndex, 1).value = branchPath;
   
-      // Branch path style
-      const branchStyle = {
-        font: { bold: true, color: { argb: 'FF000000' }, size: 8 },
-        alignment: { vertical: 'middle', horizontal: 'left' },
-        fill: {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: depthColor },
-        },
-        border: {
-          top: { style: 'thin' },
-          bottom: { style: 'thin' },
-          left: { style: 'thin' },
-          right: { style: 'thin' },
-        },
-      };
+        // Branch path style
+        const branchStyle = {
+            font: { bold: true, color: { argb: 'FF000000' }, size: 8 },
+            alignment: { vertical: 'middle', horizontal: 'left' },
+            fill: {type: 'pattern', pattern: 'solid', fgColor: { argb: depthColor }},
+            border: {
+                top: { style: 'thin' },
+                bottom: { style: 'thin' },
+                left: { style: 'thin' },
+                right: { style: 'thin' },
+            },
+        };
       incomeSheet.getCell(rowIndex, 1).style = branchStyle;
       outcomeSheet.getCell(rowIndex, 1).style = branchStyle;
   
@@ -856,7 +853,7 @@ export async function download_tree_xlsx(
         // Income Sheet
         incomeSheet.mergeCells(rowIndex, columnIndex, rowIndex, columnIndex + 1); // Merge two cells
         const incomeCell = incomeSheet.getCell(rowIndex, columnIndex);
-        incomeCell.value = formatNumber(data.income); // Format income value
+        incomeCell.value = formatNumber(data.income, displayCurrency); // Format income value
         incomeCell.style = dataStyle;
   
         // Set Style for the merged cell
@@ -865,7 +862,7 @@ export async function download_tree_xlsx(
         // Outcome Sheet
         outcomeSheet.mergeCells(rowIndex, columnIndex, rowIndex, columnIndex + 1); // Merge two cells
         const outcomeCell = outcomeSheet.getCell(rowIndex, columnIndex);
-        outcomeCell.value = formatNumber(data.outcome); // Format outcome value
+        outcomeCell.value = formatNumber(data.outcome, displayCurrency); // Format outcome value
         outcomeCell.style = dataStyle;
   
         // Set Style for the merged cell
@@ -880,11 +877,11 @@ export async function download_tree_xlsx(
   
       // Input total income and expenses
       const incomeTotalCell = incomeSheet.getCell(rowIndex, columnIndex);
-      incomeTotalCell.value = formatNumber(totalIncome);
+      incomeTotalCell.value = formatNumber(totalIncome, displayCurrency);
       incomeTotalCell.style = boldDataStyle;
   
       const outcomeTotalCell = outcomeSheet.getCell(rowIndex, columnIndex);
-      outcomeTotalCell.value = formatNumber(totalOutcome);
+      outcomeTotalCell.value = formatNumber(totalOutcome, displayCurrency);
       outcomeTotalCell.style = boldDataStyle;
   
       rowIndex++;

@@ -183,13 +183,13 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch, 
     setIsLoading(true); // Start loading
     try {
       if (type === 'daily') {
-        await download_daily_xlsx(transactions, beginDate, endDate);
+        await download_daily_xlsx(transactions, beginDate, endDate, displayCurrency);
       } else if (type === 'monthly') {
-        await download_monthly_xlsx(transactions, beginDate, endDate, 1);
+        await download_monthly_xlsx(transactions, beginDate, endDate, 1, displayCurrency);
       } else if (type === 'receipt') {
         await download_receipt_pdf(transactions, beginDate, endDate, 1, displayCurrency);
       } else if (type === 'tree') {
-        await download_tree_xlsx(transactions, beginDate, endDate, 1, branch, 10, );
+        await download_tree_xlsx(transactions, beginDate, endDate, 1, branch, 10, displayCurrency);
       }
     } catch (error) {
       console.error(error);
