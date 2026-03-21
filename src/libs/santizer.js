@@ -1,8 +1,13 @@
 // src/libs/santizer.js
 
 // Example 100000 -> 100,000
-export function formatNumber(number) {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+export function formatNumber(number, displayCurrency) {
+  switch (displayCurrency){
+    case 'KRW':
+      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    case 'CAD':
+      return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 }
 
 export function isValidPassword(password) {

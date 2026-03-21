@@ -16,7 +16,7 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import './transaction-style.css';
 
 export default function Transactions({ 
-  transactions, initTransactions, curPath, currentPage, setCurrentPage}) {
+  transactions, initTransactions, curPath, currentPage, setCurrentPage, displayCurrency}) {
   
   // 트랜잭션 편집 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function Transactions({
   };
 
   const deleteTransaction = async (tid) => {
-    if (confirm('이 트랜잭션을 삭제하시겠습니까?')) {
+    if (confirm('Do you want to remove this transaction?')) {
       try {
         await api_delete_transaction(tid);
         await initTransactions(curPath);
@@ -162,7 +162,7 @@ export default function Transactions({
                     {transaction.branch.substring(curPath.length, transaction.branch.length) || '/'}
                   </td>
                   <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-200 notranslate">
-                    {formatNumber(transaction.cashFlow)}
+                    {formatNumber(transaction.cashFlow, displayCurrency)}
                   </td>
                   <td className="px-4 py-2 text-xxs text-gray-900 dark:text-gray-200 notranslate">
                     {transaction.description ? transaction.description.substring(0, 5) : '-'}

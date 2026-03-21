@@ -291,7 +291,7 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
     return dataBox;
 }
 
-export async function download_receipt_pdf(transactions, beginDate, endDate, period=1) {
+export async function download_receipt_pdf(transactions, beginDate, endDate, period=1, displayCurrency) {
     if(transactions.length === 0) {
         alert('No transactions.');
         return;
@@ -369,9 +369,9 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
             rows.push([
                 tr.date,
                 tr.branch,
-                formatNumber(income),
-                formatNumber(outcome),
-                formatNumber(balance),
+                formatNumber(income, displayCurrency),
+                formatNumber(outcome, displayCurrency),
+                formatNumber(balance, displayCurrency),
                 imageIndex
             ]);    
             

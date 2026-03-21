@@ -11,7 +11,7 @@ import {
   PieChart, Pie, BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, Tooltip,
 } from 'recharts';
 
-export default function ModalReport({ isOpen, closeModal, transactions, branch }) {
+export default function ModalReport({ isOpen, closeModal, transactions, branch, displayCurrency}) {
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenditure, setTotalExpenditure] = useState(0);
   const [childrenReport, setChildrenReport] = useState({});
@@ -187,7 +187,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch }
       } else if (type === 'monthly') {
         await download_monthly_xlsx(transactions, beginDate, endDate, 1);
       } else if (type === 'receipt') {
-        await download_receipt_pdf(transactions, beginDate, endDate, 1);
+        await download_receipt_pdf(transactions, beginDate, endDate, 1, displayCurrency);
       } else if (type === 'tree') {
         await download_tree_xlsx(transactions, beginDate, endDate, 1, branch, 10);
       }

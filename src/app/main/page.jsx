@@ -196,6 +196,7 @@ export default function MainPage() {
                 initTransactions={initTransactions}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
+                displayCurrency={displayCurrency}
               />
             </div>
           </div>
@@ -207,6 +208,7 @@ export default function MainPage() {
         closeModal={closeReport}
         transactions={transactions}
         branch={branch}
+        displayCurrency={displayCurrency}
       />
 
       <ModalSettings
