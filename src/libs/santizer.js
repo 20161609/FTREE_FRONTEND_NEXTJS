@@ -8,6 +8,7 @@ export function formatNumber(number, displayCurrency) {
     case 'CAD':
       return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+  return (Number(number) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function isValidPassword(password) {

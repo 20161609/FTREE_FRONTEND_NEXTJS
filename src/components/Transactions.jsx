@@ -237,6 +237,7 @@ export default function Transactions({
           closeModal={closeNewModal}
           saveNewTransaction={saveNewTransaction}
           initialDate={getTodayDate()}
+          displayCurrency={displayCurrency}
         />
       )}
     </div>

@@ -9,6 +9,7 @@ export default function ModalAddition({
   closeModal,
   saveNewTransaction,
   initialDate,
+  displayCurrency
 }) {
   const [date, setDate] = useState(initialDate);
   const [description, setDescription] = useState('');
@@ -38,7 +39,10 @@ export default function ModalAddition({
       setDescription(result.description);
     }
 
+    
     const cashflow = -result.cashflow;
+
+
     const date_time = result.date;
     setDate(date_time);
 
@@ -112,6 +116,8 @@ export default function ModalAddition({
         return;
       }
     }
+    console.log(parsedCashFlow, 'parsedCashFlow')
+    return
 
     setIsLoading(true);
     try {

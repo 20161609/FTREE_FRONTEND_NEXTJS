@@ -189,7 +189,7 @@ export default function ModalReport({ isOpen, closeModal, transactions, branch, 
       } else if (type === 'receipt') {
         await download_receipt_pdf(transactions, beginDate, endDate, 1, displayCurrency);
       } else if (type === 'tree') {
-        await download_tree_xlsx(transactions, beginDate, endDate, 1, branch, 10);
+        await download_tree_xlsx(transactions, beginDate, endDate, 1, branch, 10, );
       }
     } catch (error) {
       console.error(error);

@@ -384,9 +384,9 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
         rows.push([
             'Total',
             '',
-            formatNumber(totalIncome),
-            formatNumber(totalOutcome),
-            formatNumber(balance),
+            formatNumber(totalIncome, displayCurrency),
+            formatNumber(totalOutcome, displayCurrency),
+            formatNumber(balance, displayCurrency),
             ''
         ]);
 
@@ -598,7 +598,8 @@ export async function download_tree_xlsx(
     endDate,
     period = 1,
     branch,
-    maxDepth = 10
+    maxDepth = 10,
+    displayCurrency
   ) {
     const branchDict = {};
     const ROOT_BRANCH_PATH = branch.path;
@@ -849,7 +850,7 @@ export async function download_tree_xlsx(
         // Income 시트
         incomeSheet.mergeCells(rowIndex, columnIndex, rowIndex, columnIndex + 1); // 두 셀 병합
         const incomeCell = incomeSheet.getCell(rowIndex, columnIndex);
-        incomeCell.value = formatNumber(data.income); // Income 값 형식화
+        incomeCell.value = formatNumber(data.income, displayCurrency); // Income 값 형식화
         incomeCell.style = dataStyle;
   
         // 병합된 셀 전체에 스타일 적용
@@ -858,7 +859,7 @@ export async function download_tree_xlsx(
         // Outcome 시트
         outcomeSheet.mergeCells(rowIndex, columnIndex, rowIndex, columnIndex + 1); // 두 셀 병합
         const outcomeCell = outcomeSheet.getCell(rowIndex, columnIndex);
-        outcomeCell.value = formatNumber(data.outcome); // Outcome 값 형식화
+        outcomeCell.value = formatNumber(data.outcome, displayCurrency); // Outcome 값 형식화
         outcomeCell.style = dataStyle;
   
         // 병합된 셀 전체에 스타일 적용
@@ -873,11 +874,11 @@ export async function download_tree_xlsx(
   
       // 총합 수입 및 지출 입력
       const incomeTotalCell = incomeSheet.getCell(rowIndex, columnIndex);
-      incomeTotalCell.value = formatNumber(totalIncome);
+      incomeTotalCell.value = formatNumber(totalIncome, displayCurrency);
       incomeTotalCell.style = boldDataStyle;
   
       const outcomeTotalCell = outcomeSheet.getCell(rowIndex, columnIndex);
-      outcomeTotalCell.value = formatNumber(totalOutcome);
+      outcomeTotalCell.value = formatNumber(totalOutcome, displayCurrency);
       outcomeTotalCell.style = boldDataStyle;
   
       rowIndex++;
