@@ -145,6 +145,25 @@ export default function ModalSettings({
                     />
                   </div>
 
+                  {/* Display Currency */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Display Currency
+                    </label>
+                    <select
+                      value={displayCurrency}
+                      onChange={handleCurrencyChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    >
+                      <option value="CAD">CAD</option>
+                      <option value="KRW">KRW</option>
+                      <option value="USD">USD</option>
+                      <option value="JPY">JPY</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+
+
                   {/* AI Toggle */}
                   <div className="flex items-center justify-between">
                     <label className="mr-4 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -164,23 +183,6 @@ export default function ModalSettings({
                     </button>
                   </div>
 
-                  {/* Display Currency */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Display Currency
-                    </label>
-                    <select
-                      value={displayCurrency}
-                      onChange={handleCurrencyChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    >
-                      <option value="CAD">CAD</option>
-                      <option value="KRW">KRW</option>
-                      <option value="USD">USD</option>
-                      <option value="JPY">JPY</option>
-                      <option value="EUR">EUR</option>
-                    </select>
-                  </div>
 
                   {/* Change Password */}
                   <div>
