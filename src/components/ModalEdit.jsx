@@ -19,7 +19,7 @@ export default function ModalEdit({
   useEffect(() => {
     if (transaction) {
       setUpdatedDescription(transaction.description || '');
-      setUpdatedCashFlow(transaction.cashFlow);
+      setUpdatedCashFlow(transaction.cashFlow/100);
       if (transaction.receiptImage) {
         setReceiptImage(transaction.receiptImage);
       } else {
