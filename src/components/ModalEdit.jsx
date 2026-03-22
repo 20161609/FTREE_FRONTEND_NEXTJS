@@ -48,6 +48,7 @@ export default function ModalEdit({
   const handleSave = async () => {
     setIsLoading(true); // Start loading
     try {
+      console.log(displayCurrency, 'displayCurrency')
       if (displayCurrency in ['CAD', 'USD', 'EUR']) cashFlow *= 100;
       await saveEditTransaction({
         ...transaction,
