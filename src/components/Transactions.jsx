@@ -227,6 +227,7 @@ export default function Transactions({
           transaction={selectedTransaction}
           saveEditTransaction={saveEditTransaction}
           deleteTransaction={deleteTransaction}
+          displayCurrency={displayCurrency}
         />
       )}
 

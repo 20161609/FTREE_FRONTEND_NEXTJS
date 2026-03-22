@@ -9,6 +9,7 @@ export default function ModalEdit({
   transaction,
   saveEditTransaction,
   deleteTransaction,
+  displayCurrency
 }) {
   const [updatedDescription, setUpdatedDescription] = useState('');
   const [updatedCashFlow, setUpdatedCashFlow] = useState(0);
@@ -19,7 +20,10 @@ export default function ModalEdit({
   useEffect(() => {
     if (transaction) {
       setUpdatedDescription(transaction.description || '');
-      setUpdatedCashFlow(transaction.cashFlow/100);
+
+      let cashFlow = transaction.cashFlow;
+      if (displayCurrency in ['CAD', 'USD', 'EUR']) cashFlow /= 100;
+      setUpdatedCashFlow(transaction.cashFlow);
       if (transaction.receiptImage) {
         setReceiptImage(transaction.receiptImage);
       } else {
@@ -44,6 +48,7 @@ export default function ModalEdit({
   const handleSave = async () => {
     setIsLoading(true); // Start loading
     try {
+      if (displayCurrency in ['CAD', 'USD', 'EUR']) cashFlow *= 100;
       await saveEditTransaction({
         ...transaction,
         description: updatedDescription,
