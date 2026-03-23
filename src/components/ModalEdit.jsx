@@ -22,11 +22,9 @@ export default function ModalEdit({
       setUpdatedDescription(transaction.description || '');
 
       let cashFlow = transaction.cashFlow;
-      console.log(displayCurrency, 'displayCurrency2')
-      console.log(['CAD', 'USD', 'EUR'].includes(displayCurrency))
-      displayCurrency = 'CAD';
-      if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) cashFlow /= 100;
-      setUpdatedCashFlow(transaction.cashFlow);
+      if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) 
+        cashFlow /= 100;
+      setUpdatedCashFlow(cashFlow);
       if (transaction.receiptImage) {
         setReceiptImage(transaction.receiptImage);
       } else {
@@ -51,11 +49,13 @@ export default function ModalEdit({
   const handleSave = async () => {
     setIsLoading(true); // Start loading
     try {
-      if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) cashFlow *= 100;
+      let cashFlow = updatedCashFlow
+      if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) 
+        cashFlow *= 100;
       await saveEditTransaction({
         ...transaction,
         description: updatedDescription,
-        cashFlow: updatedCashFlow,
+        cashFlow: cashFlow,
         receiptFile,
       });
       closeModal(); // Optionally close the modal after saving
