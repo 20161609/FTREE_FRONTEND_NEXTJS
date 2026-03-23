@@ -22,7 +22,8 @@ export default function ModalEdit({
       setUpdatedDescription(transaction.description || '');
 
       let cashFlow = transaction.cashFlow;
-      console.log(displayCurrency, 'displayCurrency')
+      console.log(displayCurrency, 'displayCurrency2')
+      console.log(['CAD', 'USD', 'EUR'].includes(displayCurrency))
       displayCurrency = 'CAD';
       if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) cashFlow /= 100;
       setUpdatedCashFlow(transaction.cashFlow);
