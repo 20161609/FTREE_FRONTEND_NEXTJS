@@ -17,14 +17,65 @@ import { api_get_receipt_image_multiple } from '@/libs/api_transaction';
 
 
 export async function download_daily_xlsx(transactions, beginDate, endDate, displayCurrency) {
-    if(transactions.length === 0) {
+    if (!transactions || transactions.length === 0) {
         alert('No transactions.');
         return;
     }
+
+    const parseDateOnly = (value) => {
+        if (value instanceof Date) {
+            return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            const match = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+
+            if (match) {
+                const year = Number(match[1]);
+                const month = Number(match[2]);
+                const day = Number(match[3]);
+                return new Date(year, month - 1, day);
+            }
+
+            const fallback = new Date(trimmed);
+            if (!Number.isNaN(fallback.getTime())) {
+                return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
+            }
+        }
+
+        return new Date(NaN);
+    };
+
+    const formatDateOnly = (dateObj) => {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const shouldDivideBy100 = ['CAD', 'USD', 'EUR'].includes(displayCurrency);
+
+    const normalizeMoney = (value) => {
+        const numericValue = Number(value) || 0;
+        return shouldDivideBy100 ? numericValue / 100 : numericValue;
+    };
+
+    const getNumberFormat = () => {
+        return shouldDivideBy100 ? '#,##0.00' : '#,##0';
+    };
+
+    const beginDateObj = parseDateOnly(beginDate);
+    const endDateObj = parseDateOnly(endDate);
+
+    if (Number.isNaN(beginDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+        alert('Invalid date range.');
+        return;
+    }
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Transactions');
 
-    // Add Headers (Set columns as needed)
     worksheet.columns = [
         { header: 'Date', key: 'date', width: 15 },
         { header: 'Branch', key: 'branch', width: 40 },
@@ -34,14 +85,13 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
         { header: 'Description', key: 'description', width: 30 }
     ];
 
-    // Apply styles to the header row (A~F)
     const headerRow = worksheet.getRow(1);
     headerRow.eachCell({ includeEmpty: false }, (cell) => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
         cell.fill = {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FF4F81BD' } // Blue background
+            fgColor: { argb: 'FF4F81BD' }
         };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
         cell.border = {
@@ -51,25 +101,33 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
             right: { style: 'medium' }
         };
     });
-
-    // Modify the height of the header row
     headerRow.height = 20;
-    
-    // Insert data
+
     let totalIncome = 0;
     let totalOutcome = 0;
-    transactions.forEach(t => {
-        const transactionDate = new Date(t.date);
-        if (transactionDate < beginDate || transactionDate > endDate) return;
 
-        const income = t.cashFlow > 0 ? t.cashFlow : 0;
-        const outcome = t.cashFlow < 0 ? -t.cashFlow : 0;
+    const sortedTransactions = [...transactions]
+        .map((t) => ({
+            ...t,
+            __parsedDate: parseDateOnly(t.date),
+        }))
+        .filter((t) => !Number.isNaN(t.__parsedDate.getTime()))
+        .sort((a, b) => a.__parsedDate - b.__parsedDate);
+
+    sortedTransactions.forEach((t) => {
+        const transactionDate = t.__parsedDate;
+        if (transactionDate < beginDateObj || transactionDate > endDateObj) return;
+
+        const rawCashFlow = Number(t.cashFlow) || 0;
+        const income = rawCashFlow > 0 ? normalizeMoney(rawCashFlow) : 0;
+        const outcome = rawCashFlow < 0 ? normalizeMoney(Math.abs(rawCashFlow)) : 0;
+
         totalIncome += income;
         totalOutcome += outcome;
         const balance = totalIncome - totalOutcome;
 
         worksheet.addRow({
-            date: transactionDate.toLocaleDateString(),
+            date: formatDateOnly(transactionDate),
             branch: t.branch,
             income: income,
             outcome: outcome,
@@ -78,7 +136,6 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
         });
     });
 
-    // Add a total row
     const totalRow = worksheet.addRow({
         date: '',
         branch: 'Total',
@@ -88,7 +145,6 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
         description: ''
     });
 
-    // Apply styles to the total row (A~F)
     totalRow.eachCell({ includeEmpty: false }, (cell) => {
         cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -101,19 +157,16 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
         cell.fill = {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FFDBE7F1' } // Blue background
+            fgColor: { argb: 'FFDBE7F1' }
         };
     });
 
-    // Format numbers as currency (Income, Outcome, Balance)
-    worksheet.getColumn(3).numFmt = '#,##0'; // Income
-    worksheet.getColumn(4).numFmt = '#,##0'; // Outcome
-    worksheet.getColumn(5).numFmt = '#,##0'; // Balance
+    worksheet.getColumn(3).numFmt = getNumberFormat();
+    worksheet.getColumn(4).numFmt = getNumberFormat();
+    worksheet.getColumn(5).numFmt = getNumberFormat();
 
-
-    // Style the data rows (A~F)
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber !== 1) { // Skip the header row
+        if (rowNumber !== 1) {
             row.eachCell((cell) => {
                 cell.alignment = { vertical: 'middle', horizontal: 'center' };
                 cell.border = {
@@ -123,13 +176,15 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
                     right: { style: 'thin' }
                 };
             });
-            row.height = 18; // Set row height
+            row.height = 18;
         }
     });
 
-    // Create a buffer and download the file
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'daily.xlsx';
