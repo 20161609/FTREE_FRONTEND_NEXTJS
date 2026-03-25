@@ -139,15 +139,56 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
 }
 
 export async function download_monthly_xlsx(transactions, beginDate, endDate, period = 1, displayCurrency) {
-    if (transactions.length === 0) {
+    if (!transactions || transactions.length === 0) {
         alert('No transactions.');
         return;
     }
 
-    const beginDateObj = new Date(beginDate);
-    const endDateObj = new Date(endDate);
+    const parseDateOnly = (value) => {
+        if (value instanceof Date) {
+            return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            const match = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+
+            if (match) {
+                const year = Number(match[1]);
+                const month = Number(match[2]);
+                const day = Number(match[3]);
+                return new Date(year, month - 1, day);
+            }
+
+            const fallback = new Date(trimmed);
+            if (!Number.isNaN(fallback.getTime())) {
+                return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
+            }
+        }
+
+        return new Date(NaN);
+    };
+
+    const formatDateOnly = (dateObj) => {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const getMonthEnd = (dateObj, monthSpan = 1) => {
+        return new Date(dateObj.getFullYear(), dateObj.getMonth() + monthSpan, 0);
+    };
+
+    const beginDateObj = parseDateOnly(beginDate);
+    const endDateObj = parseDateOnly(endDate);
 
     if (Number.isNaN(beginDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+        alert('Invalid date range.');
+        return;
+    }
+
+    if (beginDateObj > endDateObj) {
         alert('Invalid date range.');
         return;
     }
@@ -158,65 +199,67 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
     const [FRONT_OFFSET, BACK_OFFSET, INPUT_OFFSET, OUTPUT_OFFSET, BALANCE_OFFSET] = [0, 1, 2, 3, 4];
 
     const dataBox = [];
-    let periodFront = new Date(beginDateObj.getFullYear(), beginDateObj.getMonth(), beginDateObj.getDate());
+    let currentFront = new Date(beginDateObj);
 
-    while (periodFront <= endDateObj) {
-        const rawBack = new Date(periodFront.getFullYear(), periodFront.getMonth() + period, 0);
-        const periodBack = rawBack > endDateObj ? new Date(endDateObj) : rawBack;
+    while (currentFront <= endDateObj) {
+        const rawBack = getMonthEnd(currentFront, period);
+        const currentBack = rawBack > endDateObj ? new Date(endDateObj) : rawBack;
 
         dataBox.push([
-            new Date(periodFront),
-            new Date(periodBack),
+            new Date(currentFront),
+            new Date(currentBack),
             0,
             0,
             0,
         ]);
 
-        periodFront = new Date(periodBack.getFullYear(), periodBack.getMonth() + 1, 1);
-    }
-
-    if (dataBox.length === 0) {
-        alert('No transactions.');
-        return;
+        currentFront = new Date(currentBack.getFullYear(), currentBack.getMonth() + 1, 1);
     }
 
     let totalIncome = 0;
     let totalOutcome = 0;
 
-    const sortedTransactions = [...transactions].sort((a, b) => {
-        const aTime = new Date(a.date).getTime();
-        const bTime = new Date(b.date).getTime();
-        return aTime - bTime;
-    });
+    const normalizedTransactions = transactions
+        .map((t) => {
+            const txDate = parseDateOnly(t.date);
+            return {
+                ...t,
+                __parsedDate: txDate,
+            };
+        })
+        .filter((t) => !Number.isNaN(t.__parsedDate.getTime()))
+        .sort((a, b) => a.__parsedDate - b.__parsedDate);
 
-    for (const t of sortedTransactions) {
-        const tDate = new Date(t.date);
-        if (Number.isNaN(tDate.getTime())) continue;
-        if (tDate < beginDateObj || tDate > endDateObj) continue;
+    for (const t of normalizedTransactions) {
+        const txDate = t.__parsedDate;
 
-        const income = t.cashFlow > 0 ? t.cashFlow : 0;
-        const outcome = t.cashFlow < 0 ? -t.cashFlow : 0;
+        if (txDate < beginDateObj || txDate > endDateObj) {
+            continue;
+        }
+
+        const income = Number(t.cashFlow) > 0 ? Number(t.cashFlow) : 0;
+        const outcome = Number(t.cashFlow) < 0 ? Math.abs(Number(t.cashFlow)) : 0;
 
         totalIncome += income;
         totalOutcome += outcome;
 
-        const targetIndex = dataBox.findIndex(
-            (row) => row[FRONT_OFFSET] <= tDate && tDate <= row[BACK_OFFSET]
-        );
+        const bucketIndex = dataBox.findIndex((row) => {
+            return row[FRONT_OFFSET] <= txDate && txDate <= row[BACK_OFFSET];
+        });
 
-        if (targetIndex === -1) {
+        if (bucketIndex === -1) {
             continue;
         }
 
-        dataBox[targetIndex][INPUT_OFFSET] += income;
-        dataBox[targetIndex][OUTPUT_OFFSET] += outcome;
+        dataBox[bucketIndex][INPUT_OFFSET] += income;
+        dataBox[bucketIndex][OUTPUT_OFFSET] += outcome;
     }
 
     let runningBalance = 0;
-    dataBox.forEach((row) => {
+    for (const row of dataBox) {
         runningBalance += row[INPUT_OFFSET] - row[OUTPUT_OFFSET];
         row[BALANCE_OFFSET] = runningBalance;
-    });
+    }
 
     worksheet.columns = [
         { header: 'Start Date', key: 'startDate', width: 15 },
@@ -244,39 +287,36 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
     });
     headerRow.height = 20;
 
-    dataBox.forEach((row) => {
+    for (const row of dataBox) {
         const newRow = worksheet.addRow({
-            startDate: row[FRONT_OFFSET].toISOString().split('T')[0],
-            endDate: row[BACK_OFFSET].toISOString().split('T')[0],
+            startDate: formatDateOnly(row[FRONT_OFFSET]),
+            endDate: formatDateOnly(row[BACK_OFFSET]),
             totalIncome: row[INPUT_OFFSET],
             totalOutcome: row[OUTPUT_OFFSET],
             balance: row[BALANCE_OFFSET],
         });
 
         newRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-            if (colNumber <= 5) {
-                cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
-                    cell.numFmt = '#,##0';
-                }
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
+                cell.numFmt = '#,##0';
             }
         });
-    });
+    }
 
     const totalRow = worksheet.addRow({
         startDate: 'Total',
+        endDate: '',
         totalIncome: totalIncome,
         totalOutcome: totalOutcome,
         balance: totalIncome - totalOutcome,
     });
 
     totalRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-        if (colNumber <= 5) {
-            cell.font = { bold: true };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
-                cell.numFmt = '#,##0';
-            }
+        cell.font = { bold: true };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
+            cell.numFmt = '#,##0';
         }
     });
 
