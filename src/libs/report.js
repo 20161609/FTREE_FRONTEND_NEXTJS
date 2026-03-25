@@ -1,14 +1,5 @@
 // src/libs/report.js
 
-// import autoTable from 'jspdf-autotable';
-// import { formatNumber } from '@/libs/santizer';
-// import jsPDF from 'jspdf';
-// import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-// import ExcelJS from 'exceljs';
-// import { api_get_receipt_image_multiple } from '@/libs/api_transaction';
-// import { saveAs } from 'file-saver';
-// import { formatDynamicAPIAccesses } from 'next/dist/server/app-render/dynamic-rendering';
-
 import autoTable from 'jspdf-autotable';
 import { formatNumber } from '@/libs/santizer';
 import jsPDF from 'jspdf';
@@ -666,109 +657,6 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
     doc.save('accounting_ledger.pdf');
 }
 
-export async function download_tree_xlsx2(transactions, beginDate, endDate, period = 1, branch, maxDepth = 10, displayCurrency) {
-    const branchDict = {};
-    const tree = {};
-    const ROOT_BRANCH_PATH = branch.path;
-    const stack = [branch];
-
-    // Compute the tree structure as a dictionary
-    while (stack.length > 0) {
-        const curBranch = stack.pop();
-        branchDict[curBranch.path] = [];
-
-        for (let child in curBranch.children) {
-            const childBranch = curBranch.children[child];
-            stack.push(childBranch);
-        }
-    }
-
-    // Divide the period based on the start and end dates
-    let front = new Date(beginDate);
-    let back = new Date(front.getFullYear(), front.getMonth() + period, 0);
-    const dataBox = [];
-
-    // Create space in the data box to store income and expenses for each period
-    while (front <= new Date(endDate)) {
-        dataBox.push([front, new Date(Math.min(back, new Date(endDate))), []]);
-        front = new Date(front.getFullYear(), front.getMonth() + period, 1);
-        back = new Date(front.getFullYear(), front.getMonth() + period, 0);
-
-        // Initialize income and expenses for each branch
-        for (let branchPath in branchDict) {
-            branchDict[branchPath].push({ income: 0, outcome: 0 });
-        }
-    }
-
-    // Aggregate income and expenses by transaction data
-    let dateIndex = 0;
-    for (let i = 0; i < transactions.length; i++) {
-        const t = transactions[i];
-        const tDate = new Date(t.date);
-        if (!(beginDate <= tDate && tDate <= endDate))
-            continue;
-
-        dateIndex = 0;
-        while (!(dataBox[dateIndex][0] <= tDate && tDate <= dataBox[dateIndex][1])) {
-            dateIndex++;
-            if (dateIndex >= dataBox.length)
-                break;
-        }
-
-        if (dateIndex >= dataBox.length) break;
-
-        const income = t.cashFlow > 0 ? t.cashFlow : 0;
-        const outcome = t.cashFlow < 0 ? -t.cashFlow : 0;
-
-        // Aggregate income and expenses by branch
-        if (!branchDict[t.branch][dateIndex]) {
-            branchDict[t.branch][dateIndex] = { income: 0, outcome: 0 };
-        }
-
-        dataBox[dateIndex][2].push({ transaction: t, income, outcome });
-        branchDict[t.branch][dateIndex].income += income;
-        branchDict[t.branch][dateIndex].outcome += outcome;
-    }
-
-    // Create an Excel workbook using ExcelJS
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Tree Transactions');
-
-    // Set Headers
-    worksheet.columns = [
-        { header: 'Branch', key: 'branch', width: 30 },
-        { header: 'Start Date', key: 'startDate', width: 15 },
-        { header: 'End Date', key: 'endDate', width: 15 },
-        { header: 'Income', key: 'income', width: 15 },
-        { header: 'Outcome', key: 'outcome', width: 15 }
-    ];
-
-    // Add data for each branch to the Excel worksheet
-    for (let branchPath in branchDict) {
-        branchDict[branchPath].forEach((data, index) => {
-            const row = {
-                branch: branchPath,
-                startDate: dataBox[index][0].toISOString().split('T')[0],
-                endDate: dataBox[index][1].toISOString().split('T')[0],
-                income: data.income,
-                outcome: data.outcome
-            };
-            worksheet.addRow(row);
-        });
-    }
-
-    // Download the Excel file
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `tree_transactions_${beginDate}_${endDate}.xlsx`;
-    link.click();
-
-    // Clean up the URL after download
-    window.URL.revokeObjectURL(link.href);
-}
-
 export async function download_tree_xlsx(
     transactions,
     beginDate,
@@ -818,6 +706,18 @@ export async function download_tree_xlsx(
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
         const d = String(dateObj.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
+    };
+
+    const formatCompactDateRange = (startDate, endDate) => {
+        const sy = String(startDate.getFullYear()).slice(-2);
+        const sm = String(startDate.getMonth() + 1).padStart(2, '0');
+        const sd = String(startDate.getDate()).padStart(2, '0');
+
+        const ey = String(endDate.getFullYear()).slice(-2);
+        const em = String(endDate.getMonth() + 1).padStart(2, '0');
+        const ed = String(endDate.getDate()).padStart(2, '0');
+
+        return `${sy}${sm}${sd}-${ey}${em}${ed}`;
     };
 
     const getPeriodEnd = (dateObj, monthSpan = 1) => {
@@ -1045,7 +945,7 @@ export async function download_tree_xlsx(
     const buildSheet = (sheet, type) => {
         const headerRowValues = ['Branch'];
         dataBox.forEach((box) => {
-            headerRowValues.push(`${formatDateOnly(box.startDate)} ~ ${formatDateOnly(box.endDate)}`);
+            headerRowValues.push(formatCompactDateRange(box.startDate, box.endDate));
         });
         headerRowValues.push('Total');
 
@@ -1054,7 +954,7 @@ export async function download_tree_xlsx(
 
         sheet.getColumn(1).width = 40;
         for (let i = 2; i <= headerRowValues.length; i++) {
-            sheet.getColumn(i).width = 18;
+            sheet.getColumn(i).width = 16;
         }
 
         orderedBranchPaths.forEach((branchPath) => {
@@ -1110,7 +1010,12 @@ export async function download_tree_xlsx(
             }
         });
 
-        applyDataStyle(sheet, 2, lastRowNumber - 1, Array.from({ length: headerRowValues.length - 1 }, (_, idx) => idx + 2));
+        applyDataStyle(
+            sheet,
+            2,
+            lastRowNumber - 1,
+            Array.from({ length: headerRowValues.length - 1 }, (_, idx) => idx + 2)
+        );
     };
 
     buildSheet(incomeSheet, 'income');
@@ -1133,4 +1038,4 @@ export async function download_tree_xlsx(
         dataBox,
         branchDict,
     };
-}  
+}
