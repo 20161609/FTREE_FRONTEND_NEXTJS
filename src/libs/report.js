@@ -180,6 +180,17 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
         return new Date(dateObj.getFullYear(), dateObj.getMonth() + monthSpan, 0);
     };
 
+    const shouldDivideBy100 = ['CAD', 'USD', 'EUR'].includes(displayCurrency);
+
+    const normalizeMoney = (value) => {
+        const numericValue = Number(value) || 0;
+        return shouldDivideBy100 ? numericValue / 100 : numericValue;
+    };
+
+    const getNumberFormat = () => {
+        return shouldDivideBy100 ? '#,##0.00' : '#,##0';
+    };
+
     const beginDateObj = parseDateOnly(beginDate);
     const endDateObj = parseDateOnly(endDate);
 
@@ -237,8 +248,9 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
             continue;
         }
 
-        const income = Number(t.cashFlow) > 0 ? Number(t.cashFlow) : 0;
-        const outcome = Number(t.cashFlow) < 0 ? Math.abs(Number(t.cashFlow)) : 0;
+        const rawCashFlow = Number(t.cashFlow) || 0;
+        const income = rawCashFlow > 0 ? normalizeMoney(rawCashFlow) : 0;
+        const outcome = rawCashFlow < 0 ? normalizeMoney(Math.abs(rawCashFlow)) : 0;
 
         totalIncome += income;
         totalOutcome += outcome;
@@ -299,7 +311,7 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
         newRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
             cell.alignment = { vertical: 'middle', horizontal: 'center' };
             if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
-                cell.numFmt = '#,##0';
+                cell.numFmt = getNumberFormat();
             }
         });
     }
@@ -316,7 +328,7 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
         cell.font = { bold: true };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
         if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
-            cell.numFmt = '#,##0';
+            cell.numFmt = getNumberFormat();
         }
     });
 
