@@ -138,165 +138,172 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
     document.body.removeChild(link);
 }
 
-export async function download_monthly_xlsx(transactions, beginDate, endDate, period=1, displayCurrency) {
-    if(transactions.length === 0) {
+export async function download_monthly_xlsx(transactions, beginDate, endDate, period = 1, displayCurrency) {
+    if (transactions.length === 0) {
         alert('No transactions.');
         return;
     }
 
-    const dataBox = [];
-    
-    let dateFront = new Date(beginDate);
-    let dateBack = new Date(dateFront.getFullYear(), dateFront.getMonth() + period, 0);
+    const beginDateObj = new Date(beginDate);
+    const endDateObj = new Date(endDate);
 
-    const [FRONT_OFFSET, BACK_OFFSET, INPUT_OFFSET, OUTPUT_OFFSET, BALANCE_OFFSET] = [0, 1, 2, 3, 4];
-
-    while (dateFront <= new Date(endDate)) {
-        dataBox.push([dateFront, dateBack, 0, 0, 0]);
-        
-        // Update dateFront and dateBack to move to the next period
-
-        // First day of the next month
-        dateFront = new Date(dateBack.getFullYear(), dateBack.getMonth() + 1, 1);  
-
-        // Last day of the next period
-        const nextBack = new Date(dateFront.getFullYear(), dateFront.getMonth() + period, 0);
-
-        // If nextBack is greater than endDate, set dateBack to endDate
-        dateBack = (nextBack > new Date(endDate)) ? new Date(endDate) : nextBack;
-    }
-
-    if(dataBox.length === 0) {
-        alert('No transactions.');
+    if (Number.isNaN(beginDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+        alert('Invalid date range.');
         return;
     }
 
-    let dateIndex = 0;
-    let totalIncome = 0;
-    let totalOutcome = 0;
-
-    for (let i = 0; i < transactions.length; i++) {
-        const t = transactions[i];
-        const condition = new Date(beginDate) <= new Date(t.date) && new Date(t.date) <= new Date(endDate);
-        if (!condition) 
-            continue;
-
-        let front = dataBox[dateIndex][FRONT_OFFSET];
-        let back = dataBox[dateIndex][BACK_OFFSET];
-        while (!(front <= new Date(t.date) && new Date(t.date) <= back)) {
-            dateIndex++;
-            if (dateIndex >= dataBox.length) 
-                break;
-
-            front = dataBox[dateIndex][FRONT_OFFSET];
-            back = dataBox[dateIndex][BACK_OFFSET];
-        }
-        
-        if (dateIndex >= dataBox.length) 
-            break;
-        
-        const income = t.cashFlow > 0 ? t.cashFlow : 0;
-        const outcome = t.cashFlow < 0 ? -t.cashFlow : 0;
-        totalIncome += income;
-        totalOutcome += outcome;
-
-        dataBox[dateIndex][INPUT_OFFSET] += income;
-        dataBox[dateIndex][OUTPUT_OFFSET] += outcome;
-        dataBox[dateIndex][BALANCE_OFFSET] += totalIncome - totalOutcome;
-    }
-    
-    // Create a new Excel workbook and worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Transactions');
 
-    // Add header row to the worksheet with style
+    const [FRONT_OFFSET, BACK_OFFSET, INPUT_OFFSET, OUTPUT_OFFSET, BALANCE_OFFSET] = [0, 1, 2, 3, 4];
+
+    const dataBox = [];
+    let periodFront = new Date(beginDateObj.getFullYear(), beginDateObj.getMonth(), beginDateObj.getDate());
+
+    while (periodFront <= endDateObj) {
+        const rawBack = new Date(periodFront.getFullYear(), periodFront.getMonth() + period, 0);
+        const periodBack = rawBack > endDateObj ? new Date(endDateObj) : rawBack;
+
+        dataBox.push([
+            new Date(periodFront),
+            new Date(periodBack),
+            0,
+            0,
+            0,
+        ]);
+
+        periodFront = new Date(periodBack.getFullYear(), periodBack.getMonth() + 1, 1);
+    }
+
+    if (dataBox.length === 0) {
+        alert('No transactions.');
+        return;
+    }
+
+    let totalIncome = 0;
+    let totalOutcome = 0;
+
+    const sortedTransactions = [...transactions].sort((a, b) => {
+        const aTime = new Date(a.date).getTime();
+        const bTime = new Date(b.date).getTime();
+        return aTime - bTime;
+    });
+
+    for (const t of sortedTransactions) {
+        const tDate = new Date(t.date);
+        if (Number.isNaN(tDate.getTime())) continue;
+        if (tDate < beginDateObj || tDate > endDateObj) continue;
+
+        const income = t.cashFlow > 0 ? t.cashFlow : 0;
+        const outcome = t.cashFlow < 0 ? -t.cashFlow : 0;
+
+        totalIncome += income;
+        totalOutcome += outcome;
+
+        const targetIndex = dataBox.findIndex(
+            (row) => row[FRONT_OFFSET] <= tDate && tDate <= row[BACK_OFFSET]
+        );
+
+        if (targetIndex === -1) {
+            continue;
+        }
+
+        dataBox[targetIndex][INPUT_OFFSET] += income;
+        dataBox[targetIndex][OUTPUT_OFFSET] += outcome;
+    }
+
+    let runningBalance = 0;
+    dataBox.forEach((row) => {
+        runningBalance += row[INPUT_OFFSET] - row[OUTPUT_OFFSET];
+        row[BALANCE_OFFSET] = runningBalance;
+    });
+
     worksheet.columns = [
         { header: 'Start Date', key: 'startDate', width: 15 },
         { header: 'End Date', key: 'endDate', width: 15 },
         { header: 'Income', key: 'totalIncome', width: 15 },
         { header: 'Outcome', key: 'totalOutcome', width: 15 },
-        { header: 'Balance', key: 'balance', width: 15 }
+        { header: 'Balance', key: 'balance', width: 15 },
     ];
 
-    // Style the header row (A~E)
     const headerRow = worksheet.getRow(1);
-    headerRow.eachCell({ includeEmpty: false }, function (cell, colNumber) {
-        if (colNumber <= 5) {  // A~E
-            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };  // White text
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };  // Center alignment
-            cell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF4F81BD' }  // Blue background
-            };
-        }
+    headerRow.eachCell({ includeEmpty: false }, (cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+        cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4F81BD' },
+        };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = {
+            top: { style: 'medium' },
+            bottom: { style: 'medium' },
+            left: { style: 'medium' },
+            right: { style: 'medium' },
+        };
     });
+    headerRow.height = 20;
 
-    // Add data from dataBox into the worksheet
-    dataBox.forEach((row, index) => {
+    dataBox.forEach((row) => {
         const newRow = worksheet.addRow({
-            startDate: row[FRONT_OFFSET].toISOString().split('T')[0],   // Start date
-            endDate: row[BACK_OFFSET].toISOString().split('T')[0],     // End date
-            totalIncome: row[INPUT_OFFSET],                            // Income
-            totalOutcome: row[OUTPUT_OFFSET],                          // Outcome
-            balance: row[BALANCE_OFFSET]                               // Balance
+            startDate: row[FRONT_OFFSET].toISOString().split('T')[0],
+            endDate: row[BACK_OFFSET].toISOString().split('T')[0],
+            totalIncome: row[INPUT_OFFSET],
+            totalOutcome: row[OUTPUT_OFFSET],
+            balance: row[BALANCE_OFFSET],
         });
 
-        newRow.eachCell({ includeEmpty: false }, function (cell, colNumber) {
-            if (colNumber <= 5) {  // A~E
-                cell.alignment = { vertical: 'middle', horizontal: 'center' };  // Center align data rows
+        newRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+            if (colNumber <= 5) {
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
                 if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
-                    cell.numFmt = '#,##0';  // Format as currency for Income, Outcome, Balance
+                    cell.numFmt = '#,##0';
                 }
             }
         });
     });
 
-    // Add total Income and Outcome at the bottom of the worksheet
     const totalRow = worksheet.addRow({
         startDate: 'Total',
-        totalIncome: totalIncome,  // Entire Income
-        totalOutcome: totalOutcome,  // Entire Outcome
-        balance: totalIncome - totalOutcome // Entire Balance
+        totalIncome: totalIncome,
+        totalOutcome: totalOutcome,
+        balance: totalIncome - totalOutcome,
     });
 
-    // Total row only bold, no background color (A~E)
-    totalRow.eachCell({ includeEmpty: false }, function (cell, colNumber) {
-        if (colNumber <= 5) {  // Set style for A~E
-            cell.font = { bold: true };  // Bold text for total row
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };  // Center align total row
+    totalRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        if (colNumber <= 5) {
+            cell.font = { bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
             if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
-                cell.numFmt = '#,##0';  // Format as currency for Income, Outcome, Balance
+                cell.numFmt = '#,##0';
             }
         }
     });
 
-    // Apply borders for better readability (A~E)
-    worksheet.eachRow({ includeEmpty: true }, function(row, rowNumber) {
-        row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
-            if (colNumber <= 5) {  // Set border for A~E
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            if (colNumber <= 5) {
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
                     bottom: { style: 'thin' },
-                    right: { style: 'thin' }
+                    right: { style: 'thin' },
                 };
             }
         });
     });
 
-    // Create a buffer and download the file
     const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob(
+        [buffer],
+        { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+    );
 
-    // Use browser's download functionality to download the Excel file
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `transactions_${beginDate}_${endDate}.xlsx`;
     link.click();
-
-    // Clean up the URL after download
     window.URL.revokeObjectURL(url);
 
     return dataBox;
