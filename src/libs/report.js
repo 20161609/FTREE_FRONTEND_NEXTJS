@@ -777,308 +777,360 @@ export async function download_tree_xlsx(
     branch,
     maxDepth = 10,
     displayCurrency
-  ) {
-    const branchDict = {};
-    const ROOT_BRANCH_PATH = branch.path;
-    const stack = [branch];
-  
-    // Construct the tree structure as a dictionary
-    while (stack.length > 0) {
-      const curBranch = stack.pop();
-      branchDict[curBranch.path] = [];
-  
-      const childrenKeys = Object.keys(curBranch.children).reverse();
+) {
+    if (!transactions || transactions.length === 0) {
+        alert('No transactions.');
+        return;
+    }
 
-      for (const key of childrenKeys) {
-        const childBranch = curBranch.children[key];
-        stack.push(childBranch);
-      }
-      
+    if (!branch || !branch.path) {
+        alert('Invalid branch.');
+        return;
     }
-  
-    // Divide the period based on the start and end dates
-    let front = new Date(beginDate);
-    let back = new Date(front.getFullYear(), front.getMonth() + period, 0);
+
+    const parseDateOnly = (value) => {
+        if (value instanceof Date) {
+            return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            const match = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+
+            if (match) {
+                const year = Number(match[1]);
+                const month = Number(match[2]);
+                const day = Number(match[3]);
+                return new Date(year, month - 1, day);
+            }
+
+            const fallback = new Date(trimmed);
+            if (!Number.isNaN(fallback.getTime())) {
+                return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
+            }
+        }
+
+        return new Date(NaN);
+    };
+
+    const formatDateOnly = (dateObj) => {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const getPeriodEnd = (dateObj, monthSpan = 1) => {
+        return new Date(dateObj.getFullYear(), dateObj.getMonth() + monthSpan, 0);
+    };
+
+    const getDepthFromRoot = (rootPath, targetPath) => {
+        if (targetPath === rootPath) return 0;
+        if (!targetPath.startsWith(`${rootPath}/`)) return Infinity;
+
+        const rootDepth = rootPath.split('/').filter(Boolean).length;
+        const targetDepth = targetPath.split('/').filter(Boolean).length;
+        return targetDepth - rootDepth;
+    };
+
+    const normalizeBranchPath = (branchPath, rootPath) => {
+        if (!branchPath || typeof branchPath !== 'string') {
+            return rootPath;
+        }
+
+        const trimmed = branchPath.trim();
+        if (trimmed === '') {
+            return rootPath;
+        }
+
+        if (trimmed === rootPath || trimmed.startsWith(`${rootPath}/`)) {
+            return trimmed;
+        }
+
+        if (trimmed.startsWith('/')) {
+            return `${rootPath}${trimmed}`;
+        }
+
+        return `${rootPath}/${trimmed}`;
+    };
+
+    const shouldDivideBy100 = ['CAD', 'USD', 'EUR'].includes(displayCurrency);
+
+    const normalizeMoney = (value) => {
+        const numericValue = Number(value) || 0;
+        return shouldDivideBy100 ? numericValue / 100 : numericValue;
+    };
+
+    const getNumberFormat = () => {
+        return shouldDivideBy100 ? '#,##0.00' : '#,##0';
+    };
+
+    const beginDateObj = parseDateOnly(beginDate);
+    const endDateObj = parseDateOnly(endDate);
+
+    if (Number.isNaN(beginDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+        alert('Invalid date range.');
+        return;
+    }
+
+    if (beginDateObj > endDateObj) {
+        alert('Invalid date range.');
+        return;
+    }
+
+    const ROOT_BRANCH_PATH = branch.path;
+    const branchDict = {};
+    const orderedBranchPaths = [];
+    const stack = [{ node: branch, depth: 0 }];
+
+    while (stack.length > 0) {
+        const { node, depth } = stack.pop();
+        const currentPath = node.path;
+
+        if (depth > maxDepth) {
+            continue;
+        }
+
+        branchDict[currentPath] = [];
+        orderedBranchPaths.push(currentPath);
+
+        const children = node.children || {};
+        const childKeys = Object.keys(children).reverse();
+
+        for (const key of childKeys) {
+            stack.push({
+                node: children[key],
+                depth: depth + 1,
+            });
+        }
+    }
+
     const dataBox = [];
-    let periodCount = 1;
-  
-    // Create space in the data box to store income and expenses for each period
-    while (front <= new Date(endDate)) {
-      dataBox.push({
-        period: `Period ${periodCount++}`,
-        startDate: new Date(front),
-        endDate: new Date(Math.min(back, new Date(endDate))),
-        transactions: [],
-      });
-      front = new Date(front.getFullYear(), front.getMonth() + period, 1);
-      back = new Date(front.getFullYear(), front.getMonth() + period, 0);
-  
-      // Initialize income and expenses for each branch
-      for (let branchPath in branchDict) {
-        branchDict[branchPath].push({ income: 0, outcome: 0 });
-      }
+    let currentFront = new Date(beginDateObj);
+
+    while (currentFront <= endDateObj) {
+        const rawBack = getPeriodEnd(currentFront, period);
+        const currentBack = rawBack > endDateObj ? new Date(endDateObj) : rawBack;
+
+        dataBox.push({
+            startDate: new Date(currentFront),
+            endDate: new Date(currentBack),
+        });
+
+        currentFront = new Date(currentBack.getFullYear(), currentBack.getMonth() + 1, 1);
     }
-  
-    // Aggregate income and expenses by transaction data
-    let dateIndex = 0;
-    for (let i = 0; i < transactions.length; i++) {
-      const t = transactions[i];
-      const tDate = new Date(t.date);
-      if (!(beginDate <= tDate && tDate <= endDate)) continue;
-  
-      dateIndex = 0;
-      while (
-        !(
-          dataBox[dateIndex].startDate <= tDate &&
-          tDate <= dataBox[dateIndex].endDate
-        )
-      ) {
-        dateIndex++;
-        if (dateIndex >= dataBox.length) break;
-      }
-  
-      if (dateIndex >= dataBox.length) break;
-  
-      const income = t.cashFlow > 0 ? t.cashFlow : 0;
-      const outcome = t.cashFlow < 0 ? -t.cashFlow : 0;
-  
-      dataBox[dateIndex].transactions.push({ transaction: t, income, outcome });
-  
-      var branchNode = t.branch;
-      branchDict[branchNode][dateIndex].income += income;
-      branchDict[branchNode][dateIndex].outcome += outcome;
-      while (branchNode != ROOT_BRANCH_PATH) {
-        branchNode = branchNode.substring(0, branchNode.lastIndexOf('/'));
-        branchDict[branchNode][dateIndex].income += income;
-        branchDict[branchNode][dateIndex].outcome += outcome;
-      }
+
+    if (dataBox.length === 0) {
+        alert('No transactions.');
+        return;
     }
-  
-    // Create an Excel workbook using ExcelJS
+
+    for (const branchPath of orderedBranchPaths) {
+        for (let i = 0; i < dataBox.length; i++) {
+            branchDict[branchPath].push({ income: 0, outcome: 0 });
+        }
+    }
+
+    const normalizedTransactions = transactions
+        .map((t) => {
+            const parsedDate = parseDateOnly(t.date);
+            const normalizedBranch = normalizeBranchPath(t.branch, ROOT_BRANCH_PATH);
+
+            return {
+                ...t,
+                __parsedDate: parsedDate,
+                __normalizedBranch: normalizedBranch,
+            };
+        })
+        .filter((t) => {
+            if (Number.isNaN(t.__parsedDate.getTime())) return false;
+            if (!t.__normalizedBranch.startsWith(ROOT_BRANCH_PATH)) return false;
+            if (getDepthFromRoot(ROOT_BRANCH_PATH, t.__normalizedBranch) > maxDepth) return false;
+            return true;
+        })
+        .sort((a, b) => a.__parsedDate - b.__parsedDate);
+
+    for (const t of normalizedTransactions) {
+        const tDate = t.__parsedDate;
+
+        if (tDate < beginDateObj || tDate > endDateObj) {
+            continue;
+        }
+
+        const bucketIndex = dataBox.findIndex((box) => {
+            return box.startDate <= tDate && tDate <= box.endDate;
+        });
+
+        if (bucketIndex === -1) {
+            continue;
+        }
+
+        const rawCashFlow = Number(t.cashFlow) || 0;
+        const income = rawCashFlow > 0 ? normalizeMoney(rawCashFlow) : 0;
+        const outcome = rawCashFlow < 0 ? normalizeMoney(Math.abs(rawCashFlow)) : 0;
+
+        let branchNode = t.__normalizedBranch;
+
+        while (true) {
+            if (branchDict[branchNode] && branchDict[branchNode][bucketIndex]) {
+                branchDict[branchNode][bucketIndex].income += income;
+                branchDict[branchNode][bucketIndex].outcome += outcome;
+            }
+
+            if (branchNode === ROOT_BRANCH_PATH) {
+                break;
+            }
+
+            const lastSlashIndex = branchNode.lastIndexOf('/');
+            if (lastSlashIndex === -1) {
+                break;
+            }
+
+            branchNode = branchNode.substring(0, lastSlashIndex);
+
+            if (!branchNode.startsWith(ROOT_BRANCH_PATH)) {
+                break;
+            }
+        }
+    }
+
     const workbook = new ExcelJS.Workbook();
-  
-    // Income Sheet
     const incomeSheet = workbook.addWorksheet('Income');
-    incomeSheet.views = [{ state: 'frozen', xSplit: 1 }]; // Fix column A
-  
-    // Outcome Sheet
     const outcomeSheet = workbook.addWorksheet('Outcome');
-    outcomeSheet.views = [{ state: 'frozen', xSplit: 1 }]; // Fix column A
-  
-    // Style settings: Header style
-    const headerStyle = {
-      font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 },
-      fill: {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF4F81BD' },
-      }, // Blue background
-      alignment: { vertical: 'middle', horizontal: 'center' },
-      border: {
-        top: { style: 'medium' },
-        bottom: { style: 'medium' },
-        left: { style: 'medium' },
-        right: { style: 'medium' },
-      },
+
+    incomeSheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
+    outcomeSheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
+
+    const applyHeaderStyle = (sheet, rowNumber, colCount) => {
+        const row = sheet.getRow(rowNumber);
+        for (let col = 1; col <= colCount; col++) {
+            const cell = row.getCell(col);
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF4F81BD' },
+            };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+                top: { style: 'medium' },
+                bottom: { style: 'medium' },
+                left: { style: 'medium' },
+                right: { style: 'medium' },
+            };
+        }
+        row.height = 20;
     };
-  
-    // Style settings: Data cell style
-    const dataStyle = {
-      font: { bold: false, color: { argb: 'FF000000' }, size: 8 },
-      alignment: { vertical: 'middle', horizontal: 'center' },
-      border: {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' },
-      },
+
+    const applyDataStyle = (sheet, fromRow, toRow, numberColumns = []) => {
+        for (let rowNumber = fromRow; rowNumber <= toRow; rowNumber++) {
+            const row = sheet.getRow(rowNumber);
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.border = {
+                    top: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    left: { style: 'thin' },
+                    right: { style: 'thin' },
+                };
+
+                if (numberColumns.includes(colNumber)) {
+                    cell.numFmt = getNumberFormat();
+                }
+            });
+            row.height = 18;
+        }
     };
-  
-    // Style settings: Bold data cell style (for total)
-    const boldDataStyle = {
-      font: { bold: true, color: { argb: 'FF000000' }, size: 8 },
-      alignment: { vertical: 'middle', horizontal: 'center' },
-      border: {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' },
-      },
+
+    const buildSheet = (sheet, type) => {
+        const headerRowValues = ['Branch'];
+        dataBox.forEach((box) => {
+            headerRowValues.push(`${formatDateOnly(box.startDate)} ~ ${formatDateOnly(box.endDate)}`);
+        });
+        headerRowValues.push('Total');
+
+        sheet.addRow(headerRowValues);
+        applyHeaderStyle(sheet, 1, headerRowValues.length);
+
+        sheet.getColumn(1).width = 40;
+        for (let i = 2; i <= headerRowValues.length; i++) {
+            sheet.getColumn(i).width = 18;
+        }
+
+        orderedBranchPaths.forEach((branchPath) => {
+            const rowValues = [branchPath];
+            let branchTotal = 0;
+
+            branchDict[branchPath].forEach((periodData) => {
+                const amount = type === 'income' ? periodData.income : periodData.outcome;
+                rowValues.push(amount);
+                branchTotal += amount;
+            });
+
+            rowValues.push(branchTotal);
+            sheet.addRow(rowValues);
+        });
+
+        const totalRowValues = ['Total'];
+        let grandTotal = 0;
+
+        for (let i = 0; i < dataBox.length; i++) {
+            let periodTotal = 0;
+
+            orderedBranchPaths.forEach((branchPath) => {
+                const amount = type === 'income'
+                    ? branchDict[branchPath][i].income
+                    : branchDict[branchPath][i].outcome;
+
+                if (getDepthFromRoot(ROOT_BRANCH_PATH, branchPath) === 0) {
+                    periodTotal += amount;
+                }
+            });
+
+            totalRowValues.push(periodTotal);
+            grandTotal += periodTotal;
+        }
+
+        totalRowValues.push(grandTotal);
+        sheet.addRow(totalRowValues);
+
+        const lastRowNumber = sheet.lastRow.number;
+        const totalRow = sheet.getRow(lastRowNumber);
+        totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            cell.font = { bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+                top: { style: 'medium' },
+                bottom: { style: 'medium' },
+                left: { style: 'medium' },
+                right: { style: 'medium' },
+            };
+            if (colNumber >= 2) {
+                cell.numFmt = getNumberFormat();
+            }
+        });
+
+        applyDataStyle(sheet, 2, lastRowNumber - 1, Array.from({ length: headerRowValues.length - 1 }, (_, idx) => idx + 2));
     };
-  
-    // Style settings: Left-aligned style
-    const leftAlignStyle = {
-      font: { bold: false, color: { argb: 'FF000000' }, size: 8 },
-      alignment: { vertical: 'middle', horizontal: 'left' },
-      border: {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' },
-      },
-    };
-  
-    // Function to format numbers
-    // const formatNumber = (num) => {
-    //   return num.toLocaleString('en-US', { minimumFractionDigits: 0 });
-    // };
-  
-    // Function to calculate color based on depth
-    const getDepthColor = (depth, maxDepth) => {
-      // Color value calculation (darker color for deeper depth)
-      const baseColor = 255;
-      const colorValue = Math.max(baseColor - depth * (200 / maxDepth), 55); // Set minimum value to 55
-      const hexValue = Math.floor(colorValue).toString(16).padStart(2, '0');
-      const color = `FF${hexValue}${hexValue}${hexValue}`; // Gray scale color
-      return color;
-    };
-  
-    // Set 'Branch' header (merge A1:A2)
-    incomeSheet.mergeCells('A1:A2');
-    incomeSheet.getCell('A1').value = 'Branch';
-    incomeSheet.getCell('A1').style = headerStyle;
-  
-    outcomeSheet.mergeCells('A1:A2');
-    outcomeSheet.getCell('A1').value = 'Branch';
-    outcomeSheet.getCell('A1').style = headerStyle;
-  
-    // Add 'Period' header and dates for each period
-    let columnIndex = 2; // Column index starts from 2
-    dataBox.forEach((data, index) => {
-      // Set 'Period' header (merge B1:C1, D1:E1, ...)
-        incomeSheet.mergeCells(1, columnIndex, 1, columnIndex + 1);
-        incomeSheet.getCell(1, columnIndex).value = `Period ${index + 1}`;
-        incomeSheet.getCell(1, columnIndex).style = headerStyle;
-  
-        outcomeSheet.mergeCells(1, columnIndex, 1, columnIndex + 1);
-        outcomeSheet.getCell(1, columnIndex).value = `Period ${index + 1}`;
-        outcomeSheet.getCell(1, columnIndex).style = headerStyle;
-  
-        // Date format: 'YY.MM.DD'
-        const formatDate = (date) => {
-            const year = date.getFullYear().toString().slice(2);
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const day = date.getDate().toString().padStart(2, '0');
-            return `${year}.${month}.${day}`;
-        };
-  
-        // Set start and end dates and apply styles
-        incomeSheet.getCell(2, columnIndex).value = formatDate(data.startDate);
-        incomeSheet.getCell(2, columnIndex).style = dataStyle;
-  
-        incomeSheet.getCell(2, columnIndex + 1).value = formatDate(data.endDate);
-        incomeSheet.getCell(2, columnIndex + 1).style = dataStyle;
-  
-        outcomeSheet.getCell(2, columnIndex).value = formatDate(data.startDate);
-        outcomeSheet.getCell(2, columnIndex).style = dataStyle;
-  
-        outcomeSheet.getCell(2, columnIndex + 1).value = formatDate(data.endDate);
-        outcomeSheet.getCell(2, columnIndex + 1).style = dataStyle;
-  
-        columnIndex += 2;
-    });
-  
-    // Set 'Total' header (merge D1:E1, G1:H1, ...)
-    incomeSheet.mergeCells(1, columnIndex, 2, columnIndex);
-    incomeSheet.getCell(1, columnIndex).value = 'Total';
-    incomeSheet.getCell(1, columnIndex).style = headerStyle;
-  
-    outcomeSheet.mergeCells(1, columnIndex, 2, columnIndex);
-    outcomeSheet.getCell(1, columnIndex).value = 'Total';
-    outcomeSheet.getCell(1, columnIndex).style = headerStyle;
-  
-    // Add income and expenses for each branch to the sheet
-    let rowIndex = 3; // Row index starts from 3
-    for (let branchPath in branchDict) {
-        // Aggregate income and expenses by branch
-        const depth = branchPath.split('/').length - 1; // Depth of the branch
-  
-        // Calculate color based on depth
-        const depthColor = getDepthColor(depth, maxDepth);
-  
-        // Branch path
-        incomeSheet.getCell(rowIndex, 1).value = branchPath;
-        outcomeSheet.getCell(rowIndex, 1).value = branchPath;
-  
-        // Branch path style
-        const branchStyle = {
-            font: { bold: true, color: { argb: 'FF000000' }, size: 8 },
-            alignment: { vertical: 'middle', horizontal: 'left' },
-            fill: {type: 'pattern', pattern: 'solid', fgColor: { argb: depthColor }},
-            border: {
-                top: { style: 'thin' },
-                bottom: { style: 'thin' },
-                left: { style: 'thin' },
-                right: { style: 'thin' },
-            },
-        };
-      incomeSheet.getCell(rowIndex, 1).style = branchStyle;
-      outcomeSheet.getCell(rowIndex, 1).style = branchStyle;
-  
-      // Input income and expenses for each period
-      let columnIndex = 2;
-      let totalIncome = 0;
-      let totalOutcome = 0;
-      branchDict[branchPath].forEach((data, index) => {
-        // Income Sheet
-        incomeSheet.mergeCells(rowIndex, columnIndex, rowIndex, columnIndex + 1); // Merge two cells
-        const incomeCell = incomeSheet.getCell(rowIndex, columnIndex);
-        incomeCell.value = formatNumber(data.income, displayCurrency); // Format income value
-        incomeCell.style = dataStyle;
-  
-        // Set Style for the merged cell
-        incomeSheet.getCell(rowIndex, columnIndex + 1).style = dataStyle;
-  
-        // Outcome Sheet
-        outcomeSheet.mergeCells(rowIndex, columnIndex, rowIndex, columnIndex + 1); // Merge two cells
-        const outcomeCell = outcomeSheet.getCell(rowIndex, columnIndex);
-        outcomeCell.value = formatNumber(data.outcome, displayCurrency); // Format outcome value
-        outcomeCell.style = dataStyle;
-  
-        // Set Style for the merged cell
-        outcomeSheet.getCell(rowIndex, columnIndex + 1).style = dataStyle;
-  
-        // Calculate the total income and expenses for each branch
-        totalIncome += data.income;
-        totalOutcome += data.outcome;
-  
-        columnIndex += 2;
-      });
-  
-      // Input total income and expenses
-      const incomeTotalCell = incomeSheet.getCell(rowIndex, columnIndex);
-      incomeTotalCell.value = formatNumber(totalIncome, displayCurrency);
-      incomeTotalCell.style = boldDataStyle;
-  
-      const outcomeTotalCell = outcomeSheet.getCell(rowIndex, columnIndex);
-      outcomeTotalCell.value = formatNumber(totalOutcome, displayCurrency);
-      outcomeTotalCell.style = boldDataStyle;
-  
-      rowIndex++;
-    }
-  
-    // Modify the width of the columns
-    incomeSheet.getColumn(1).width = 30;
-    outcomeSheet.getColumn(1).width = 30;
-  
-    // Set the width of the remaining columns to be narrow
-    for (let i = 2; i <= incomeSheet.columnCount; i++) {
-      incomeSheet.getColumn(i).width = 9; // Set the width of the column to 9
-      outcomeSheet.getColumn(i).width = 9;
-    }
-  
-    // Create a buffer and download the file
+
+    buildSheet(incomeSheet, 'income');
+    buildSheet(outcomeSheet, 'outcome');
+
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+    const blob = new Blob(
+        [buffer],
+        { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+    );
+
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    link.href = url;
     link.download = `tree_transactions_${beginDate}_${endDate}.xlsx`;
     link.click();
-  
-    // Clean up the URL after download
-    window.URL.revokeObjectURL(link.href);
-}
-  
+    window.URL.revokeObjectURL(url);
+
+    return {
+        dataBox,
+        branchDict,
+    };
+}  
