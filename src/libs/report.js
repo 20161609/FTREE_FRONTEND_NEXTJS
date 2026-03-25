@@ -1,14 +1,19 @@
 // src/libs/report.js
 
+// import autoTable from 'jspdf-autotable';
+// import { formatNumber } from '@/libs/santizer';
+// import jsPDF from 'jspdf';
+// import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+// import ExcelJS from 'exceljs';
+// import { api_get_receipt_image_multiple } from '@/libs/api_transaction';
+// import { saveAs } from 'file-saver';
+// import { formatDynamicAPIAccesses } from 'next/dist/server/app-render/dynamic-rendering';
+
 import autoTable from 'jspdf-autotable';
 import { formatNumber } from '@/libs/santizer';
 import jsPDF from 'jspdf';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import ExcelJS from 'exceljs';
 import { api_get_receipt_image_multiple } from '@/libs/api_transaction';
-import { saveAs } from 'file-saver';
-import { formatDynamicAPIAccesses } from 'next/dist/server/app-render/dynamic-rendering';
-
 
 
 export async function download_daily_xlsx(transactions, beginDate, endDate, displayCurrency) {

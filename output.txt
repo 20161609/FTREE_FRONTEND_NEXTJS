@@ -2457,6 +2457,7 @@ export default function ModalEdit({
   transaction,
   saveEditTransaction,
   deleteTransaction,
+  displayCurrency
 }) {
   const [updatedDescription, setUpdatedDescription] = useState('');
   const [updatedCashFlow, setUpdatedCashFlow] = useState(0);
@@ -2467,7 +2468,11 @@ export default function ModalEdit({
   useEffect(() => {
     if (transaction) {
       setUpdatedDescription(transaction.description || '');
-      setUpdatedCashFlow(transaction.cashFlow);
+
+      let cashFlow = transaction.cashFlow;
+      if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) 
+        cashFlow /= 100;
+      setUpdatedCashFlow(cashFlow);
       if (transaction.receiptImage) {
         setReceiptImage(transaction.receiptImage);
       } else {
@@ -2492,10 +2497,13 @@ export default function ModalEdit({
   const handleSave = async () => {
     setIsLoading(true); // Start loading
     try {
+      let cashFlow = updatedCashFlow
+      if (['CAD', 'USD', 'EUR'].includes(displayCurrency)) 
+        cashFlow *= 100;
       await saveEditTransaction({
         ...transaction,
         description: updatedDescription,
-        cashFlow: updatedCashFlow,
+        cashFlow: cashFlow,
         receiptFile,
       });
       closeModal(); // Optionally close the modal after saving
@@ -3949,6 +3957,7 @@ export default function Transactions({
           transaction={selectedTransaction}
           saveEditTransaction={saveEditTransaction}
           deleteTransaction={deleteTransaction}
+          displayCurrency={displayCurrency}
         />
       )}
 
