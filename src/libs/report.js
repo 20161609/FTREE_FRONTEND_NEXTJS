@@ -90,7 +90,7 @@ export async function download_daily_xlsx(transactions, beginDate, endDate, disp
 
     // Apply styles to the total row (A~F)
     totalRow.eachCell({ includeEmpty: false }, (cell) => {
-        cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } }; // 검정색 글씨
+        cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
         cell.border = {
             top: { style: 'medium' },
@@ -302,25 +302,49 @@ export async function download_monthly_xlsx(transactions, beginDate, endDate, pe
     return dataBox;
 }
 
-export async function download_receipt_pdf(transactions, beginDate, endDate, period=1, displayCurrency) {
-    if(transactions.length === 0) {
+export async function download_receipt_pdf(transactions, beginDate, endDate, period = 1, displayCurrency) {
+    if (transactions.length === 0) {
         alert('No transactions.');
         return;
     }
-    const char_encoder_res = await fetch('/char_encoder.json');
-    const body = await char_encoder_res.json();
-    const CHAR_ENCODER = body.CHAR_ENCODER;
 
-    const doc = new jsPDF('p', 'mm', 'a4'); // Use millimeters for precise positioning
+    let CHAR_ENCODER = null;
+
+    try {
+        const char_encoder_res = await fetch('/char_encoder.json');
+
+        if (!char_encoder_res.ok) {
+            throw new Error(`Failed to load char_encoder.json: ${char_encoder_res.status}`);
+        }
+
+        const body = await char_encoder_res.json();
+        CHAR_ENCODER = body?.CHAR_ENCODER;
+
+        if (!CHAR_ENCODER) {
+            throw new Error('CHAR_ENCODER is missing in char_encoder.json');
+        }
+    } catch (error) {
+        console.error('Failed to load PDF font data:', error);
+        alert('PDF font file could not be loaded.');
+        return;
+    }
+
+    const doc = new jsPDF('p', 'mm', 'a4');
     const PAGE_WIDTH = doc.internal.pageSize.getWidth();
     const PAGE_HEIGHT = doc.internal.pageSize.getHeight();
+
     const beginDateObj = new Date(beginDate);
     const endDateObj = new Date(endDate);
+
+    if (Number.isNaN(beginDateObj.getTime()) || Number.isNaN(endDateObj.getTime())) {
+        alert('Invalid date range.');
+        return;
+    }
+
     let front = new Date(beginDateObj);
     let back = new Date(front.getFullYear(), front.getMonth() + period, 0);
     const dataBox = [];
 
-    // Organize transactions into periods
     while (front <= endDateObj) {
         dataBox.push([front, new Date(Math.min(back, endDateObj)), []]);
         front = new Date(front.getFullYear(), front.getMonth() + period, 1);
@@ -329,11 +353,11 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
 
     let dateIndex = 0;
     let imageIndex = 1;
-    const receiptList = [];
     const tidList = [];
-    // Assign transactions to their respective periods
-    transactions.forEach(t => {
+
+    transactions.forEach((t) => {
         const tDate = new Date(t.date);
+        if (Number.isNaN(tDate.getTime())) return;
         if (!(beginDateObj <= tDate && tDate <= endDateObj)) return;
 
         dateIndex = 0;
@@ -346,22 +370,34 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
 
         if (t.receipt) {
             currentImageIndex = imageIndex++;
-            receiptList.push(t.receipt);
             tidList.push(t.tid);
         }
 
-        dataBox[dateIndex][2].push({ transaction: t, imageIndex: currentImageIndex });
+        dataBox[dateIndex][2].push({
+            transaction: t,
+            imageIndex: currentImageIndex,
+        });
     });
 
-    
-    const receiptUrlDict = await api_get_receipt_image_multiple(tidList);
+    let receiptUrlDict = {};
+    try {
+        receiptUrlDict = tidList.length > 0 ? await api_get_receipt_image_multiple(tidList) : {};
+    } catch (error) {
+        console.error('Failed to load receipt images:', error);
+        receiptUrlDict = {};
+    }
 
-    // Set up fonts and colors
-    doc.addFileToVFS('malgun.ttf', CHAR_ENCODER);
-    doc.addFont('malgun.ttf','malgun', 'normal');
-    doc.setFont('malgun');
+    try {
+        doc.addFileToVFS('malgun.ttf', CHAR_ENCODER);
+        doc.addFont('malgun.ttf', 'malgun', 'normal');
+        doc.setFont('malgun');
+    } catch (error) {
+        console.error('Failed to register PDF font:', error);
+        alert('PDF font registration failed.');
+        return;
+    }
+
     const primaryColor = '#4a90e2';
-    const secondaryColor = '#f5f5f5';
 
     dataBox.forEach((dataPage, i) => {
         const rows = [];
@@ -371,7 +407,8 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
 
         let totalIncome = 0;
         let totalOutcome = 0;
-        trBox.forEach(item => {
+
+        trBox.forEach((item) => {
             const tr = item.transaction;
             const income = tr.cashFlow > 0 ? tr.cashFlow : 0;
             const outcome = tr.cashFlow < 0 ? Math.abs(tr.cashFlow) : 0;
@@ -379,21 +416,23 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
             totalIncome += income;
             totalOutcome += outcome;
             balance = totalIncome - totalOutcome;
-            const imageIndex = item.imageIndex !== null ? item.imageIndex : 'No Receipt';
+
+            const receiptLabel = item.imageIndex !== null ? item.imageIndex : 'No Receipt';
+
             rows.push([
                 tr.date,
                 tr.branch,
                 formatNumber(income, displayCurrency),
                 formatNumber(outcome, displayCurrency),
                 formatNumber(balance, displayCurrency),
-                imageIndex
+                receiptLabel,
             ]);
-            
+
             if (item.imageIndex !== null) {
-                const img = receiptUrlDict[tr.tid];
+                const img = receiptUrlDict?.[tr.tid];
                 receiptImages.push({
                     img,
-                    index: item.imageIndex
+                    index: item.imageIndex,
                 });
             }
         });
@@ -401,21 +440,24 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
         rows.push([
             'Total',
             '',
-            formatNumber(totalIncome),
-            formatNumber(totalOutcome),
-            formatNumber(balance),
-            ''
+            formatNumber(totalIncome, displayCurrency),
+            formatNumber(totalOutcome, displayCurrency),
+            formatNumber(balance, displayCurrency),
+            '',
         ]);
 
-        // Add a stylish header
         doc.setFillColor(primaryColor);
         doc.rect(0, 0, PAGE_WIDTH, 20, 'F');
         doc.setFontSize(18);
         doc.setTextColor('#ffffff');
-        doc.text(`Transactions from ${dataPage[0].toLocaleDateString()} to ${dataPage[1].toLocaleDateString()}`, PAGE_WIDTH / 2, 13, { align: 'center' });
+        doc.text(
+            `Transactions from ${dataPage[0].toLocaleDateString()} to ${dataPage[1].toLocaleDateString()}`,
+            PAGE_WIDTH / 2,
+            13,
+            { align: 'center' }
+        );
 
         if (rows.length > 1) {
-            // Add the transaction table with improved styling
             autoTable(doc, {
                 head: [['Date', 'Branch', 'Income', 'Outcome', 'Balance', 'Receipt']],
                 body: rows,
@@ -443,21 +485,25 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
                     if (data.row.index === rows.length - 1) {
                         data.cell.styles.fontStyle = 'bold';
                     }
-                }
+                },
             });
-
         } else {
             doc.setFontSize(12);
             doc.setTextColor(50);
-            doc.text(`No transactions during this period.`, 10, 30);
+            doc.text('No transactions during this period.', 10, 30);
         }
 
-        // Add receipt images with labels
         if (receiptImages.length > 0) {
             doc.addPage();
+
             for (let imgIndex = 0; imgIndex < receiptImages.length;) {
                 if (imgIndex > 0 && imgIndex % 4 === 0) doc.addPage();
-                for (let imgCount = 0; imgCount < 4 && imgIndex < receiptImages.length; imgCount++, imgIndex++) {
+
+                for (
+                    let imgCount = 0;
+                    imgCount < 4 && imgIndex < receiptImages.length;
+                    imgCount++, imgIndex++
+                ) {
                     const { img, index } = receiptImages[imgIndex];
                     const xPos = (imgCount % 2) * (PAGE_WIDTH / 2) + 10;
                     const yPos = Math.floor(imgCount / 2) * (PAGE_HEIGHT / 2) + 20;
@@ -465,27 +511,32 @@ export async function download_receipt_pdf(transactions, beginDate, endDate, per
                     const maxHeight = PAGE_HEIGHT / 2 - 30;
 
                     if (img) {
-                        const imgProps = doc.getImageProperties(img);
-                        const imgWidth = imgProps.width;
-                        const imgHeight = imgProps.height;
+                        try {
+                            const imgProps = doc.getImageProperties(img);
+                            const imgWidth = imgProps.width;
+                            const imgHeight = imgProps.height;
 
-                        const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
-                        const width = imgWidth * ratio;
-                        const height = imgHeight * ratio;
+                            const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+                            const width = imgWidth * ratio;
+                            const height = imgHeight * ratio;
 
-                        const xCentered = xPos + (maxWidth - width) / 2;
-                        const yCentered = yPos + (maxHeight - height) / 2 + 10;
+                            const xCentered = xPos + (maxWidth - width) / 2;
+                            const yCentered = yPos + (maxHeight - height) / 2 + 10;
 
-                        // Draw a border around each image
-                        doc.setDrawColor(200);
-                        doc.rect(xPos, yPos - 10, maxWidth + 20, maxHeight + 20);
+                            doc.setDrawColor(200);
+                            doc.rect(xPos, yPos - 10, maxWidth + 20, maxHeight + 20);
 
-                        // Image index label
-                        doc.setFontSize(12);
-                        doc.setTextColor(primaryColor);
-                        doc.text(`Receipt #${index}`, xPos + 5, yPos - 2);
+                            doc.setFontSize(12);
+                            doc.setTextColor(primaryColor);
+                            doc.text(`Receipt #${index}`, xPos + 5, yPos - 2);
 
-                        doc.addImage(img, 'JPEG', xCentered, yCentered, width, height);
+                            doc.addImage(img, 'JPEG', xCentered, yCentered, width, height);
+                        } catch (error) {
+                            console.error(`Failed to render receipt image. tid/index=${index}`, error);
+                            doc.setFontSize(12);
+                            doc.setTextColor(100);
+                            doc.text(`Receipt #${index} could not be rendered`, xPos + 5, yPos + 20);
+                        }
                     } else {
                         doc.setFontSize(12);
                         doc.setTextColor(100);
