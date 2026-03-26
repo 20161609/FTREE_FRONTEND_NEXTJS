@@ -22,7 +22,6 @@ export default function LoginPage() {
 
     const checkSession = async () => {
       const test = await api_test();
-      console.log("Version: 1.0.1");
       console.log(test);
 
       const userinfo = await api_get_user_info();
